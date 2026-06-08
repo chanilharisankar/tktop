@@ -23,6 +23,7 @@ class OverviewScreen(Screen):
     BINDINGS = [
         Binding("q", "quit", "Quit"),
         Binding("r", "refresh", "Refresh"),
+        Binding("h", "history", "History"),
         Binding("enter", "select", "Select"),
         Binding("up,k", "cursor_up", "Up", show=False),
         Binding("down,j", "cursor_down", "Down", show=False),
@@ -127,6 +128,11 @@ class OverviewScreen(Screen):
 
     def action_refresh(self) -> None:
         self.load_sessions()
+
+    def action_history(self) -> None:
+        from tktop.tui.screens.history import HistoryScreen
+
+        self.app.push_screen(HistoryScreen(self.adapter))
 
     def action_quit(self) -> None:
         self.app.exit()
