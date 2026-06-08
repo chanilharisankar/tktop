@@ -67,5 +67,5 @@ SessionCard:hover {
 }
 
 SessionCard.-selected {
-    background: #1a1a1a;
+    background: #1a3a5c;
 }
