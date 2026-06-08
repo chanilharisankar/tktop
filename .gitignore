@@ -42,5 +42,8 @@ __pycache__/
 .venv/
 venv/
 
+# PyInstaller
+*.spec
+
 # Don't ignore .env.example
 !.env.example
