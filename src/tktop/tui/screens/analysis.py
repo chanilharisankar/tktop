@@ -26,7 +26,7 @@ class AnalysisScreen(Screen):
         m = self.metrics
         summary = (
             f" {len(m.turns)} turns • "
-            f"{m.total_usage.total:,} tokens • "
+            f"{m.total_usage.billable:,} tokens (in+out) • "
             f"${m.total_cost:.2f} • "
             f"{len(m.tool_stats)} tools • "
             f"{len(m.alerts)} alerts"

@@ -32,8 +32,11 @@ class TokenBars(Static):
             text.append(f" {_fmt(value)} ", style=f"bold {color}")
             text.append(f"({pct:.0f}%)\n", style="dim")
 
-        text.append("\n Total: ", style="dim")
-        text.append(f"{_fmt(total)} tokens", style="bold green")
+        billable = self.usage.billable
+        text.append("\n In+Out: ", style="dim")
+        text.append(f"{_fmt(billable)} tokens", style="bold green")
+        text.append("  All: ", style="dim")
+        text.append(f"{_fmt(total)} tokens", style="dim")
         return text
 
     def update_usage(self, usage: TokenUsage) -> None:

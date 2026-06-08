@@ -18,6 +18,10 @@ class TokenUsage:
             + self.cache_read_tokens
         )
 
+    @property
+    def billable(self) -> int:
+        return self.input_tokens + self.output_tokens
+
 
 @dataclass
 class ToolCall:
