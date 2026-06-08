@@ -67,9 +67,9 @@ SessionCard:hover {
 }
 
 SessionCard.-selected {
-    background: #1a3a5c;
+    background: #1a3a3a;
 }
 
 DataTable > .datatable--cursor {
-    background: #1a3a5c;
+    background: #1a3a3a;
 }
