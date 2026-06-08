@@ -55,12 +55,12 @@ class OverviewScreen(Screen):
             return
 
         now = datetime.now(tz=timezone.utc)
-        active = [s for s in all_sessions if s.status in ("idle", "busy")]
-        recent = [
+        active = [
             s for s in all_sessions
-            if s.status not in ("idle", "busy")
-            and (now - s.updated_at).days <= 7
+            if s.status == "busy"
+            or (s.status == "idle" and (now - s.updated_at).total_seconds() < 3600)
         ]
+        recent = [s for s in all_sessions if s not in active]
 
         self.sessions = active + recent
         idx = 0
