@@ -1,6 +1,6 @@
 import json
 from collections.abc import AsyncIterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from tktop.metrics.types import (
@@ -38,11 +38,11 @@ class ClaudeCodeAdapter:
                     model="",
                     status=data.get("status", "unknown"),
                     started_at=datetime.fromtimestamp(
-                        data["startedAt"] / 1000, tz=timezone.utc
+                        data["startedAt"] / 1000, tz=UTC
                     ),
                     updated_at=datetime.fromtimestamp(
                         data.get("updatedAt", data["startedAt"]) / 1000,
-                        tz=timezone.utc,
+                        tz=UTC,
                     ),
                     version=data.get("version", ""),
                 )
@@ -106,7 +106,7 @@ class ClaudeCodeAdapter:
                     timestamp_str.replace("Z", "+00:00")
                 )
             except (ValueError, AttributeError):
-                timestamp = datetime.now(tz=timezone.utc)
+                timestamp = datetime.now(tz=UTC)
 
             turns.append(
                 Turn(

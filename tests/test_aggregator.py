@@ -1,11 +1,11 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from tktop.metrics.aggregator import aggregate
 from tktop.metrics.types import SessionInfo, TokenUsage, ToolCall, Turn
 
 
 def _make_session() -> SessionInfo:
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     return SessionInfo(
         id="test-001",
         pid=1234,
@@ -22,14 +22,14 @@ def test_aggregate_totals():
     turns = [
         Turn(
             number=1,
-            timestamp=datetime.now(tz=timezone.utc),
+            timestamp=datetime.now(tz=UTC),
             role="user",
             model=None,
             usage=TokenUsage(),
         ),
         Turn(
             number=2,
-            timestamp=datetime.now(tz=timezone.utc),
+            timestamp=datetime.now(tz=UTC),
             role="assistant",
             model="claude-sonnet-4-6",
             usage=TokenUsage(
@@ -42,7 +42,7 @@ def test_aggregate_totals():
         ),
         Turn(
             number=3,
-            timestamp=datetime.now(tz=timezone.utc),
+            timestamp=datetime.now(tz=UTC),
             role="assistant",
             model="claude-sonnet-4-6",
             usage=TokenUsage(
@@ -68,7 +68,7 @@ def test_aggregate_tool_stats():
     turns = [
         Turn(
             number=1,
-            timestamp=datetime.now(tz=timezone.utc),
+            timestamp=datetime.now(tz=UTC),
             role="assistant",
             model="claude-sonnet-4-6",
             usage=TokenUsage(output_tokens=100),
@@ -76,7 +76,7 @@ def test_aggregate_tool_stats():
         ),
         Turn(
             number=2,
-            timestamp=datetime.now(tz=timezone.utc),
+            timestamp=datetime.now(tz=UTC),
             role="assistant",
             model="claude-sonnet-4-6",
             usage=TokenUsage(output_tokens=200),
@@ -99,21 +99,21 @@ def test_aggregate_tokens_per_turn():
     turns = [
         Turn(
             number=1,
-            timestamp=datetime.now(tz=timezone.utc),
+            timestamp=datetime.now(tz=UTC),
             role="assistant",
             model=None,
             usage=TokenUsage(output_tokens=100),
         ),
         Turn(
             number=2,
-            timestamp=datetime.now(tz=timezone.utc),
+            timestamp=datetime.now(tz=UTC),
             role="user",
             model=None,
             usage=TokenUsage(),
         ),
         Turn(
             number=3,
-            timestamp=datetime.now(tz=timezone.utc),
+            timestamp=datetime.now(tz=UTC),
             role="assistant",
             model=None,
             usage=TokenUsage(output_tokens=250),

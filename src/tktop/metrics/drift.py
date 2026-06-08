@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from tktop.metrics.types import Alert, Turn
 
@@ -45,7 +45,7 @@ def _detect_tool_loop(turns: list[Turn]) -> list[Alert]:
                             f"{tool_name} called {count}x "
                             f"in last {len(window)} consecutive turns"
                         ),
-                        detected_at=datetime.now(tz=timezone.utc),
+                        detected_at=datetime.now(tz=UTC),
                     )
                 )
 
@@ -67,7 +67,7 @@ def _detect_read_loop(turns: list[Turn]) -> list[Alert]:
                 severity="warning",
                 type="read_loop",
                 description=f"Read tool called {read_count}x in this session",
-                detected_at=datetime.now(tz=timezone.utc),
+                detected_at=datetime.now(tz=UTC),
             )
         ]
     return []
@@ -94,7 +94,7 @@ def _detect_edit_thrash(turns: list[Turn]) -> list[Alert]:
                         f"Edit/Write called {edit_count}x in last "
                         f"{len(window)} turns — possible thrashing"
                     ),
-                    detected_at=datetime.now(tz=timezone.utc),
+                    detected_at=datetime.now(tz=UTC),
                 )
             ]
 
@@ -128,7 +128,7 @@ def _detect_permission_loop(turns: list[Turn]) -> list[Alert]:
                     f"{last_tool} attempted {pattern_count}x with user "
                     f"responses between — possible permission denial loop"
                 ),
-                detected_at=datetime.now(tz=timezone.utc),
+                detected_at=datetime.now(tz=UTC),
             )
         ]
 
@@ -153,7 +153,7 @@ def _detect_token_explosion(turns: list[Turn]) -> list[Alert]:
                     severity="warning",
                     type="token_explosion",
                     description="output tokens doubling each turn",
-                    detected_at=datetime.now(tz=timezone.utc),
+                    detected_at=datetime.now(tz=UTC),
                 )
             ]
 
@@ -180,7 +180,7 @@ def _detect_runaway(turns: list[Turn]) -> list[Alert]:
                     f"no user interaction in last {trailing_assistant} turns, "
                     f"{trailing_output:,} output tokens"
                 ),
-                detected_at=datetime.now(tz=timezone.utc),
+                detected_at=datetime.now(tz=UTC),
             )
         ]
 
@@ -207,7 +207,7 @@ def _detect_cache_miss_streak(turns: list[Turn]) -> list[Alert]:
                         f"cache not reused for {streak} consecutive turns "
                         f"despite cache creation"
                     ),
-                    detected_at=datetime.now(tz=timezone.utc),
+                    detected_at=datetime.now(tz=UTC),
                 )
             ]
 
@@ -241,7 +241,7 @@ def _detect_cost_spike(turns: list[Turn]) -> list[Alert]:
                         f"turn #{assistant_turns[i].number} cost ${cost:.4f} "
                         f"(avg ${avg_cost:.4f})"
                     ),
-                    detected_at=datetime.now(tz=timezone.utc),
+                    detected_at=datetime.now(tz=UTC),
                 )
             )
 

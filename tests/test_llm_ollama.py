@@ -1,5 +1,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from tktop.llm.ollama import OllamaProvider
@@ -31,12 +32,14 @@ async def test_ollama_analyze():
 async def test_ollama_analyze_error():
     provider = OllamaProvider(host="http://localhost:11434", model="llama3")
 
-    mock_response = AsyncMock()
+    mock_response = MagicMock()
     mock_response.status_code = 500
-    mock_response.raise_for_status.side_effect = Exception("500 Server Error")
+    mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+        "500 Server Error", request=MagicMock(), response=MagicMock()
+    )
 
     with patch("httpx.AsyncClient.post", return_value=mock_response):
-        with pytest.raises(Exception):
+        with pytest.raises(httpx.HTTPStatusError):
             await provider.analyze("test prompt")
 
 

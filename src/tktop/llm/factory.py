@@ -13,8 +13,12 @@ def create_provider(cfg: Config) -> LLMProvider | None:
         case "anthropic":
             return AnthropicProvider(api_key=cfg.anthropic_api_key, model=cfg.anthropic_model)
         case "vertex":
-            return VertexProvider(project=cfg.vertex_project, region=cfg.vertex_region, model=cfg.vertex_model)
+            return VertexProvider(
+                project=cfg.vertex_project, region=cfg.vertex_region, model=cfg.vertex_model
+            )
         case "openai":
-            return OpenAIProvider(base_url=cfg.openai_base_url, api_key=cfg.openai_api_key, model=cfg.openai_model)
+            return OpenAIProvider(
+                base_url=cfg.openai_base_url, api_key=cfg.openai_api_key, model=cfg.openai_model
+            )
         case _:
             return None

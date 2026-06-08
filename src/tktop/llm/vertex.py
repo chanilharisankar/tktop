@@ -1,4 +1,4 @@
-import subprocess
+import subprocess  # nosec B404 — needed for gcloud auth
 
 import httpx
 
@@ -45,7 +45,7 @@ class VertexProvider:
             return False
 
     def _get_access_token(self) -> str:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603 B607 — hardcoded gcloud command
             ["gcloud", "auth", "print-access-token"],
             capture_output=True,
             text=True,

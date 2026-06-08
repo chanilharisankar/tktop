@@ -32,7 +32,7 @@ class TokenBars(Static):
             text.append(f" {_fmt(value)} ", style=f"bold {color}")
             text.append(f"({pct:.0f}%)\n", style="dim")
 
-        text.append(f"\n Total: ", style="dim")
+        text.append("\n Total: ", style="dim")
         text.append(f"{_fmt(total)} tokens", style="bold green")
         return text
 

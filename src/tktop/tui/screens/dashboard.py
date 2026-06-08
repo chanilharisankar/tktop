@@ -9,7 +9,6 @@ from tktop.adapter.protocol import SessionAdapter
 from tktop.config import Config
 from tktop.metrics.aggregator import aggregate
 from tktop.metrics.drift import detect_drift
-from tktop.metrics.pricing import calculate_cost
 from tktop.metrics.types import SessionInfo, SessionMetrics
 from tktop.tui.widgets.alert_panel import AlertPanel
 from tktop.tui.widgets.token_bars import TokenBars

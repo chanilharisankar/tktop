@@ -1,4 +1,4 @@
-from tktop.metrics.pricing import calculate_cost, MODEL_PRICING
+from tktop.metrics.pricing import MODEL_PRICING, calculate_cost
 from tktop.metrics.types import TokenUsage
 
 

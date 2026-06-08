@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from tktop.metrics.drift import detect_drift
 from tktop.metrics.types import TokenUsage, ToolCall, Turn
@@ -14,7 +14,7 @@ def _turn(
 ) -> Turn:
     return Turn(
         number=number,
-        timestamp=datetime.now(tz=timezone.utc),
+        timestamp=datetime.now(tz=UTC),
         role=role,
         model="claude-sonnet-4-6",
         usage=TokenUsage(

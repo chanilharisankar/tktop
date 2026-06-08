@@ -1,4 +1,4 @@
-from tktop.config import Config, load_config
+from tktop.config import load_config
 
 
 def test_load_config_defaults():

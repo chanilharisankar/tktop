@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from textual import work
 from textual.app import ComposeResult
@@ -54,7 +54,7 @@ class OverviewScreen(Screen):
             await container.mount(Static(" No sessions found in ~/.claude/sessions/"))
             return
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         active = [
             s for s in all_sessions
             if s.status == "busy"
@@ -66,14 +66,16 @@ class OverviewScreen(Screen):
         idx = 0
 
         if active:
-            await container.mount(Static(f" ACTIVE SESSIONS ({len(active)})", classes="panel-title"))
+            label = f" ACTIVE SESSIONS ({len(active)})"
+            await container.mount(Static(label, classes="panel-title"))
             for session in active:
                 card = SessionCard(session, id=f"session-{idx}")
                 await container.mount(card)
                 idx += 1
 
         if recent:
-            await container.mount(Static(f"\n RECENT SESSIONS ({len(recent)})", classes="panel-title"))
+            label = f"\n RECENT SESSIONS ({len(recent)})"
+            await container.mount(Static(label, classes="panel-title"))
             for session in recent:
                 card = SessionCard(session, id=f"session-{idx}")
                 await container.mount(card)
