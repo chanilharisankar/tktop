@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.screen import Screen
-from textual.widgets import DataTable, Footer, Header, Sparkline, Static
+from textual.widgets import DataTable, Footer, Header, Static
 
 from tktop.adapter.protocol import SessionAdapter
 from tktop.metrics.pricing import calculate_cost
@@ -41,7 +41,7 @@ class HistoryScreen(Screen):
             ),
             Vertical(
                 Static(" DAILY COST", classes="panel-title"),
-                Sparkline(data=[0.0], id="cost-sparkline"),
+                Static("", id="cost-bars"),
                 classes="panel",
             ),
         )
@@ -124,15 +124,41 @@ class HistoryScreen(Screen):
                 f"${total.cost:.2f}",
             )
 
-        sparkline = self.query_one("#cost-sparkline", Sparkline)
-        sparkline.data = list(reversed(cost_data)) or [0.0]
-        sparkline.refresh()
+        cost_bars = self.query_one("#cost-bars", Static)
+        cost_bars.update(_build_cost_bars(sorted_days, daily))
 
     def action_go_back(self) -> None:
         self.app.pop_screen()
 
     def action_quit(self) -> None:
         self.app.exit()
+
+
+def _build_cost_bars(
+    sorted_days: list[str], daily: dict[str, DailyStats]
+) -> str:
+    if not sorted_days:
+        return " No data"
+
+    max_cost = max(daily[d].cost for d in sorted_days)
+    if max_cost == 0:
+        return " No costs recorded"
+
+    bar_width = 30
+    lines: list[str] = []
+
+    for day in reversed(sorted_days):
+        cost = daily[day].cost
+        filled = int(cost / max_cost * bar_width)
+        filled = max(1, filled) if cost > 0 else 0
+
+        bar = "█" * filled + "░" * (bar_width - filled)
+        label = datetime.strptime(day, "%Y-%m-%d").strftime("%b %d")
+
+        marker = " ◀" if cost == max_cost else ""
+        lines.append(f" {label}  ${cost:>7.2f}  {bar}{marker}")
+
+    return "\n".join(lines)
 
 
 def _fmt(n: int) -> str:
