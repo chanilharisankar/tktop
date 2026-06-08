@@ -24,6 +24,7 @@ class DailyStats:
 class HistoryScreen(Screen):
     BINDINGS = [
         Binding("escape", "go_back", "Back"),
+        Binding("r", "refresh", "Refresh"),
         Binding("q", "quit", "Quit"),
     ]
 
@@ -129,6 +130,9 @@ class HistoryScreen(Screen):
 
     def action_go_back(self) -> None:
         self.app.pop_screen()
+
+    def action_refresh(self) -> None:
+        self.load_history()
 
     def action_quit(self) -> None:
         self.app.exit()
