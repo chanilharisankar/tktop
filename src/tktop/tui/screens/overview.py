@@ -1,24 +1,83 @@
+from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
+from textual.containers import VerticalScroll
+from textual.message import Message
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
 
 from tktop.adapter.protocol import SessionAdapter
+from tktop.metrics.types import SessionInfo
+from tktop.tui.widgets.session_card import SessionCard
+
+
+class SessionSelected(Message):
+    def __init__(self, session: SessionInfo) -> None:
+        super().__init__()
+        self.session = session
 
 
 class OverviewScreen(Screen):
     BINDINGS = [
         Binding("q", "quit", "Quit"),
+        Binding("r", "refresh", "Refresh"),
+        Binding("enter", "select", "Select"),
+        Binding("up,k", "cursor_up", "Up", show=False),
+        Binding("down,j", "cursor_down", "Down", show=False),
     ]
 
     def __init__(self, adapter: SessionAdapter, **kwargs) -> None:
         super().__init__(**kwargs)
         self.adapter = adapter
+        self.sessions: list[SessionInfo] = []
+        self.cursor = 0
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Static(" tktop — loading sessions...")
+        yield Static(" SESSIONS", classes="panel-title")
+        yield VerticalScroll(id="session-list")
         yield Footer()
+
+    def on_mount(self) -> None:
+        self.load_sessions()
+
+    @work
+    async def load_sessions(self) -> None:
+        self.sessions = await self.adapter.discover()
+        container = self.query_one("#session-list", VerticalScroll)
+        await container.remove_children()
+
+        if not self.sessions:
+            await container.mount(Static(" No sessions found in ~/.claude/sessions/"))
+            return
+
+        for i, session in enumerate(self.sessions):
+            card = SessionCard(session, id=f"session-{i}")
+            await container.mount(card)
+
+        self.cursor = 0
+        self._update_selection()
+
+    def _update_selection(self) -> None:
+        for i, card in enumerate(self.query(SessionCard)):
+            card.selected = i == self.cursor
+
+    def action_cursor_up(self) -> None:
+        if self.cursor > 0:
+            self.cursor -= 1
+            self._update_selection()
+
+    def action_cursor_down(self) -> None:
+        if self.cursor < len(self.sessions) - 1:
+            self.cursor += 1
+            self._update_selection()
+
+    def action_select(self) -> None:
+        if self.sessions:
+            self.post_message(SessionSelected(self.sessions[self.cursor]))
+
+    def action_refresh(self) -> None:
+        self.load_sessions()
 
     def action_quit(self) -> None:
         self.app.exit()
