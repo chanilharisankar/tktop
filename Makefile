@@ -1,4 +1,4 @@
-.PHONY: install run test clean
+.PHONY: install run test lint security audit check clean
 
 install:
 	pip install -e ".[dev]"
@@ -8,6 +8,18 @@ run:
 
 test:
 	pytest -v
+
+lint:
+	ruff check src/ tests/
+
+security:
+	bandit -r src/tktop/ -q
+
+audit:
+	pip-audit
+
+check: lint security test
+	@echo "✅ All checks passed."
 
 clean:
 	rm -rf build/ dist/ *.egg-info src/*.egg-info
