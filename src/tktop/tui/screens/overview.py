@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -44,17 +46,42 @@ class OverviewScreen(Screen):
 
     @work
     async def load_sessions(self) -> None:
-        self.sessions = await self.adapter.discover()
+        all_sessions = await self.adapter.discover()
         container = self.query_one("#session-list", VerticalScroll)
         await container.remove_children()
 
-        if not self.sessions:
+        if not all_sessions:
             await container.mount(Static(" No sessions found in ~/.claude/sessions/"))
             return
 
-        for i, session in enumerate(self.sessions):
-            card = SessionCard(session, id=f"session-{i}")
-            await container.mount(card)
+        now = datetime.now(tz=timezone.utc)
+        active = [s for s in all_sessions if s.status in ("idle", "busy")]
+        recent = [
+            s for s in all_sessions
+            if s.status not in ("idle", "busy")
+            and (now - s.updated_at).days <= 7
+        ]
+
+        self.sessions = active + recent
+        idx = 0
+
+        if active:
+            await container.mount(Static(f" ACTIVE SESSIONS ({len(active)})", classes="panel-title"))
+            for session in active:
+                card = SessionCard(session, id=f"session-{idx}")
+                await container.mount(card)
+                idx += 1
+
+        if recent:
+            await container.mount(Static(f"\n RECENT SESSIONS ({len(recent)})", classes="panel-title"))
+            for session in recent:
+                card = SessionCard(session, id=f"session-{idx}")
+                await container.mount(card)
+                idx += 1
+
+        if not self.sessions:
+            await container.mount(Static(" No active or recent sessions"))
+            return
 
         self.cursor = 0
         self._update_selection()
