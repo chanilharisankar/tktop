@@ -1,0 +1,13 @@
+{
+    "pid": 12345,
+    "sessionId": "test-session-001",
+    "cwd": "/Users/testuser/Dev/myproject",
+    "startedAt": 1779088912957,
+    "procStart": "Mon May 18 07:21:47 2026",
+    "version": "2.1.150",
+    "peerProtocol": 1,
+    "kind": "interactive",
+    "entrypoint": "cli",
+    "status": "idle",
+    "updatedAt": 1779088920000
+}

@@ -1,0 +1,5 @@
+{"type":"mode","mode":"normal","sessionId":"test-session-001"}
+{"type":"user","parentUuid":"u0","message":{"role":"user","content":"hello"},"uuid":"u1","timestamp":"2026-06-01T10:00:00.000Z","sessionId":"test-session-001"}
+{"type":"assistant","parentUuid":"u1","message":{"model":"claude-sonnet-4-6","role":"assistant","content":[{"type":"text","text":"Hi there! How can I help?"}],"usage":{"input_tokens":100,"cache_creation_input_tokens":5000,"cache_read_input_tokens":0,"output_tokens":50}},"uuid":"a1","timestamp":"2026-06-01T10:00:05.000Z","sessionId":"test-session-001"}
+{"type":"user","parentUuid":"a1","message":{"role":"user","content":"fix the bug"},"uuid":"u2","timestamp":"2026-06-01T10:01:00.000Z","sessionId":"test-session-001"}
+{"type":"assistant","parentUuid":"u2","message":{"model":"claude-sonnet-4-6","role":"assistant","content":[{"type":"text","text":"Let me look at the code."}],"usage":{"input_tokens":200,"cache_creation_input_tokens":0,"cache_read_input_tokens":5000,"output_tokens":120}},"uuid":"a2","timestamp":"2026-06-01T10:01:10.000Z","sessionId":"test-session-001"}
