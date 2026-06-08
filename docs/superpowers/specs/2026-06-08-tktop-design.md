@@ -704,3 +704,4 @@ Intentionally deferred to keep the initial scope tight:
 - **`--json` output mode** — machine-readable output for scripting and CI/CD integration
 - **Custom pricing config** — user-defined model pricing for internal/custom models
 - **Export/share reports** — save LLM analysis results as markdown or HTML
+- **Enhanced cost panel** — per-category cost bars (output/cache write/cache read/input), cache hit ratio, avg cost per turn, actionable insight line showing where to optimize
