@@ -1,0 +1,71 @@
+Screen {
+    background: $surface;
+}
+
+#header {
+    dock: top;
+    height: 1;
+    background: $primary;
+    color: $text;
+    text-style: bold;
+    padding: 0 1;
+}
+
+#footer {
+    dock: bottom;
+    height: 1;
+    background: $surface-darken-1;
+    color: $text-muted;
+    padding: 0 1;
+}
+
+.panel {
+    border: round $primary;
+    padding: 0 1;
+    margin: 0 0 1 0;
+}
+
+.panel-title {
+    text-style: bold;
+    color: $warning;
+}
+
+.value-green {
+    color: $success;
+    text-style: bold;
+}
+
+.label-dim {
+    color: $text-muted;
+}
+
+.alert-warning {
+    color: $warning;
+    text-style: bold;
+}
+
+.alert-critical {
+    color: $error;
+    text-style: bold;
+}
+
+.session-active {
+    color: $success;
+}
+
+.session-inactive {
+    color: $text-muted;
+}
+
+SessionCard {
+    height: 3;
+    margin: 0 0 1 0;
+}
+
+SessionCard:hover {
+    background: $surface-lighten-1;
+}
+
+SessionCard.-selected {
+    background: $primary-darken-1;
+}
