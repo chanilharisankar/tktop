@@ -13,6 +13,7 @@ class TktopApp(App):
     SUB_TITLE = "token monitor for coding agents"
 
     BINDINGS = [
+        Binding("question_mark", "help", "Help"),
         Binding("q", "quit", "Quit"),
     ]
 
@@ -29,3 +30,8 @@ class TktopApp(App):
         from tktop.tui.screens.dashboard import DashboardScreen
 
         self.push_screen(DashboardScreen(message.session, self.adapter, self.config))
+
+    def action_help(self) -> None:
+        from tktop.tui.screens.help import HelpScreen
+
+        self.push_screen(HelpScreen())
