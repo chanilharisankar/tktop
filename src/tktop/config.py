@@ -17,7 +17,7 @@ class Config:
     anthropic_model: str = "claude-sonnet-4-6"
 
     vertex_project: str = ""
-    vertex_region: str = "us-central1"
+    vertex_region: str = "us-east5"
     vertex_model: str = "claude-sonnet-4-6"
 
     openai_base_url: str = "https://api.openai.com/v1"
@@ -50,5 +50,13 @@ def load_config() -> Config:
         value = os.getenv(env_var)
         if value:
             setattr(cfg, attr, value)
+
+    # Auto-detect Vertex AI from Claude Code env vars
+    if not cfg.vertex_project and os.getenv("ANTHROPIC_VERTEX_PROJECT_ID"):
+        cfg.vertex_project = os.getenv("ANTHROPIC_VERTEX_PROJECT_ID", "")
+    if os.getenv("CLOUD_ML_REGION", "") not in ("", "global"):
+        cfg.vertex_region = os.getenv("CLOUD_ML_REGION", cfg.vertex_region)
+    if os.getenv("CLAUDE_CODE_USE_VERTEX") == "1" and cfg.llm_provider == "ollama":
+        cfg.llm_provider = "vertex"
 
     return cfg
