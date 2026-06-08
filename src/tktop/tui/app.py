@@ -13,7 +13,7 @@ class TktopApp(App):
     SUB_TITLE = "token monitor for coding agents"
 
     BINDINGS = [
-        Binding("question_mark", "help", "? Help"),
+        Binding("question_mark", "help", "Help"),
         Binding("f1", "help", "Help", show=False),
         Binding("q", "quit", "Quit"),
     ]
