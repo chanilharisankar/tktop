@@ -24,6 +24,8 @@ class Config:
     openai_api_key: str = ""
     openai_model: str = "gpt-4o"
 
+    show_token_flow: bool = False
+
 
 def load_config() -> Config:
     load_dotenv()
@@ -50,6 +52,9 @@ def load_config() -> Config:
         value = os.getenv(env_var)
         if value:
             setattr(cfg, attr, value)
+
+    if os.getenv("TKTOP_SHOW_TOKEN_FLOW", "").lower() in ("1", "true", "yes"):
+        cfg.show_token_flow = True
 
     # Auto-detect Vertex AI from Claude Code env vars
     if not cfg.vertex_project and os.getenv("ANTHROPIC_VERTEX_PROJECT_ID"):

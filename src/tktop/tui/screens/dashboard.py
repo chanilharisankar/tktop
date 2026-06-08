@@ -35,7 +35,7 @@ class DashboardScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield VerticalScroll(
+        scroll_children = [
             Horizontal(
                 Vertical(
                     Static(" TOKEN USAGE", classes="panel-title"),
@@ -48,11 +48,16 @@ class DashboardScreen(Screen):
                     classes="panel",
                 ),
             ),
-            Vertical(
-                Static(" TOKEN FLOW (output tokens per turn)", classes="panel-title"),
-                TokenGraph(id="token-graph"),
-                classes="panel",
-            ),
+        ]
+        if self.config.show_token_flow:
+            scroll_children.append(
+                Vertical(
+                    Static(" TOKEN FLOW (output tokens per turn)", classes="panel-title"),
+                    TokenGraph(id="token-graph"),
+                    classes="panel",
+                )
+            )
+        scroll_children.extend([
             Horizontal(
                 Vertical(
                     Static(" TOOLS", classes="panel-title"),
@@ -70,7 +75,8 @@ class DashboardScreen(Screen):
                 DataTable(id="turns-table"),
                 classes="panel",
             ),
-        )
+        ])
+        yield VerticalScroll(*scroll_children)
         yield Footer()
 
     def on_mount(self) -> None:
@@ -95,7 +101,8 @@ class DashboardScreen(Screen):
         self.query_one("#token-bars", TokenBars).update_usage(m.total_usage)
         self.query_one("#tool-table", ToolTable).update_stats(m.tool_stats)
         self.query_one("#alert-panel", AlertPanel).update_alerts(m.alerts)
-        self.query_one("#token-graph", TokenGraph).update_data(m.tokens_per_turn)
+        if self.config.show_token_flow:
+            self.query_one("#token-graph", TokenGraph).update_data(m.tokens_per_turn)
 
         model = self.session.model or "claude-sonnet-4-6"
         for turn in reversed(m.turns):
