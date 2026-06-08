@@ -52,7 +52,96 @@ class ClaudeCodeAdapter:
         return sessions
 
     async def parse_transcript(self, session_id: str) -> list[Turn]:
-        raise NotImplementedError
+        transcript_path = self._find_transcript(session_id)
+        if transcript_path is None:
+            return []
+
+        turns: list[Turn] = []
+        turn_number = 0
+
+        for line in transcript_path.read_text().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            entry_type = entry.get("type")
+            if entry_type not in ("assistant", "user"):
+                continue
+
+            msg = entry.get("message", {})
+            if not isinstance(msg, dict):
+                continue
+
+            turn_number += 1
+            usage_data = msg.get("usage") or {}
+            content_blocks = msg.get("content", [])
+            if isinstance(content_blocks, str):
+                content_blocks = [{"type": "text", "text": content_blocks}]
+
+            tool_calls: list[ToolCall] = []
+            text_parts: list[str] = []
+
+            for block in content_blocks:
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "tool_use":
+                    tool_calls.append(
+                        ToolCall(name=block.get("name", ""), id=block.get("id", ""))
+                    )
+                elif block.get("type") == "text":
+                    text_parts.append(block.get("text", ""))
+
+            preview = " ".join(text_parts)[:200]
+            timestamp_str = entry.get("timestamp", "")
+            try:
+                timestamp = datetime.fromisoformat(
+                    timestamp_str.replace("Z", "+00:00")
+                )
+            except (ValueError, AttributeError):
+                timestamp = datetime.now(tz=timezone.utc)
+
+            turns.append(
+                Turn(
+                    number=turn_number,
+                    timestamp=timestamp,
+                    role=entry_type,
+                    model=msg.get("model"),
+                    usage=TokenUsage(
+                        input_tokens=usage_data.get("input_tokens", 0),
+                        output_tokens=usage_data.get("output_tokens", 0),
+                        cache_creation_tokens=usage_data.get(
+                            "cache_creation_input_tokens", 0
+                        ),
+                        cache_read_tokens=usage_data.get(
+                            "cache_read_input_tokens", 0
+                        ),
+                    ),
+                    tool_calls=tool_calls,
+                    content_preview=preview,
+                )
+            )
+
+        return turns
+
+    def _find_transcript(self, session_id: str) -> Path | None:
+        projects_dir = self.base_dir / "projects"
+        if not projects_dir.exists():
+            return None
+
+        filename = f"{session_id}.jsonl"
+        for project_dir in projects_dir.iterdir():
+            if not project_dir.is_dir():
+                continue
+            candidate = project_dir / filename
+            if candidate.exists():
+                return candidate
+
+        return None
 
     async def watch(self, session_id: str) -> AsyncIterator[Turn]:
         raise NotImplementedError
