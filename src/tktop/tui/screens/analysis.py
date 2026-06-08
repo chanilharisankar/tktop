@@ -3,7 +3,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Static
+from textual.widgets import Footer, Header, Markdown, Static
 
 from tktop.config import Config
 from tktop.llm.factory import create_provider
@@ -36,7 +36,7 @@ class AnalysisScreen(Screen):
         yield Static(f" SESSION: {summary}", id="analysis-summary")
         yield Static(" OPTIMIZATION RECOMMENDATIONS", classes="panel-title")
         yield VerticalScroll(
-            Static(" Analyzing...", id="analysis-result"),
+            Markdown("*Analyzing...*", id="analysis-result"),
             id="analysis-scroll",
         )
         yield Footer()
@@ -64,19 +64,19 @@ class AnalysisScreen(Screen):
 
     @work
     async def run_analysis(self) -> None:
-        result_widget = self.query_one("#analysis-result", Static)
+        result_widget = self.query_one("#analysis-result", Markdown)
         provider = create_provider(self.config)
 
         if provider is None:
-            result_widget.update(
-                f" Error: unknown LLM provider '{self.config.llm_provider}'"
+            await result_widget.update(
+                f"**Error:** unknown LLM provider `{self.config.llm_provider}`"
             )
             return
 
         healthy = await provider.health_check()
         if not healthy:
-            result_widget.update(
-                f" Error: {provider.name} is not reachable. "
+            await result_widget.update(
+                f"**Error:** `{provider.name}` is not reachable. "
                 f"Check your configuration."
             )
             return
@@ -84,9 +84,9 @@ class AnalysisScreen(Screen):
         prompt = build_analysis_prompt(self.metrics)
         try:
             result = await provider.analyze(prompt)
-            result_widget.update(f"\n{result}")
+            await result_widget.update(result)
         except Exception as e:
-            result_widget.update(f" Error: {e}")
+            await result_widget.update(f"**Error:** {e}")
 
     def action_go_back(self) -> None:
         self.app.pop_screen()
