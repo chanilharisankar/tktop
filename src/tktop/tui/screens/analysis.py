@@ -1,7 +1,7 @@
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Vertical, VerticalScroll
+from textual.containers import VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
 
@@ -33,17 +33,11 @@ class AnalysisScreen(Screen):
         )
 
         yield Header()
+        yield Static(f" SESSION: {summary}", id="analysis-summary")
+        yield Static(" OPTIMIZATION RECOMMENDATIONS", classes="panel-title")
         yield VerticalScroll(
-            Vertical(
-                Static(" SESSION SUMMARY", classes="panel-title"),
-                Static(summary),
-                classes="panel",
-            ),
-            Vertical(
-                Static(" OPTIMIZATION RECOMMENDATIONS", classes="panel-title"),
-                Static(" Analyzing...", id="analysis-result"),
-                classes="panel",
-            ),
+            Static(" Analyzing...", id="analysis-result"),
+            id="analysis-scroll",
         )
         yield Footer()
 
