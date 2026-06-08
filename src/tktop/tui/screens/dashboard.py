@@ -78,6 +78,10 @@ class DashboardScreen(Screen):
         table.add_columns("#", "Time", "Role", "In", "Out", "Cache", "Tools")
         table.cursor_type = "row"
         self.load_data()
+        self.set_interval(3, self._auto_refresh)
+
+    def _auto_refresh(self) -> None:
+        self.load_data()
 
     @work
     async def load_data(self) -> None:
