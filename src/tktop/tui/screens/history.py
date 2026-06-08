@@ -50,6 +50,7 @@ class HistoryScreen(Screen):
 
     def on_mount(self) -> None:
         table = self.query_one("#history-table", DataTable)
+        table.cursor_type = "row"
         table.add_columns(
             "Date", "Sessions", "Turns", "Input", "Output", "Cache", "Cost"
         )
