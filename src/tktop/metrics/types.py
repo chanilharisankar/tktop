@@ -62,6 +62,7 @@ class SessionInfo:
     started_at: datetime
     updated_at: datetime
     version: str = ""
+    title: str = ""
 
 
 @dataclass

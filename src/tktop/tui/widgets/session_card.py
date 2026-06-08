@@ -16,15 +16,15 @@ class SessionCard(Static):
 
     def render(self) -> Text:
         s = self.session
-        indicator = "●" if s.status == "idle" else "○"
-        color = "green" if s.status == "idle" else "dim"
+        indicator = "●" if s.status in ("idle", "busy") else "○"
+        color = "green" if s.status == "busy" else "cyan" if s.status == "idle" else "dim"
         project = Path(s.project_path).name
+        title = s.title or project
 
         text = Text()
         text.append(f" {indicator} ", style=color)
-        text.append(f"{s.agent_type:<14} ", style="bold")
-        text.append(f"~/{project:<26} ", style="white")
-        text.append(f"pid:{s.pid:<8} ", style="dim")
+        text.append(f"{title[:40]:<42} ", style="bold")
+        text.append(f"~/{project:<20} ", style="dim")
         text.append(f"{s.status}", style=color)
         return text
 

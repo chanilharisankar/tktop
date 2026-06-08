@@ -48,6 +48,9 @@ class ClaudeCodeAdapter:
                 )
             )
 
+        for session in sessions:
+            session.title = self._read_title(session.id)
+
         sessions.sort(key=lambda s: s.updated_at, reverse=True)
         return sessions
 
@@ -142,6 +145,28 @@ class ClaudeCodeAdapter:
                 return candidate
 
         return None
+
+    def _read_title(self, session_id: str) -> str:
+        transcript_path = self._find_transcript(session_id)
+        if transcript_path is None:
+            return ""
+
+        try:
+            with open(transcript_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if entry.get("type") == "ai-title":
+                        return entry.get("aiTitle", "")
+        except OSError:
+            pass
+
+        return ""
 
     async def watch(self, session_id: str) -> AsyncIterator[Turn]:
         raise NotImplementedError
