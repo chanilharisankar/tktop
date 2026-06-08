@@ -40,6 +40,7 @@ class OverviewScreen(Screen):
 
     def on_mount(self) -> None:
         self.load_sessions()
+        self.set_interval(2, self._auto_refresh)
 
     @work
     async def load_sessions(self) -> None:
@@ -75,6 +76,25 @@ class OverviewScreen(Screen):
     def action_select(self) -> None:
         if self.sessions:
             self.post_message(SessionSelected(self.sessions[self.cursor]))
+
+    def _auto_refresh(self) -> None:
+        self._refresh_statuses()
+
+    @work
+    async def _refresh_statuses(self) -> None:
+        updated = await self.adapter.discover()
+        status_map = {s.id: s.status for s in updated}
+
+        changed = False
+        for session in self.sessions:
+            new_status = status_map.get(session.id)
+            if new_status and new_status != session.status:
+                session.status = new_status
+                changed = True
+
+        if changed:
+            for card in self.query(SessionCard):
+                card.refresh()
 
     def action_refresh(self) -> None:
         self.load_sessions()
