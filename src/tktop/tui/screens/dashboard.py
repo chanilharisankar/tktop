@@ -83,14 +83,24 @@ class DashboardScreen(Screen):
         table = self.query_one("#turns-table", DataTable)
         table.add_columns("#", "Time", "Role", "In", "Out", "Cache", "Tools", "Preview")
         table.cursor_type = "row"
+        self._last_turn_count = 0
         self.load_data()
-        self.set_interval(3, self._auto_refresh)
+        self.set_interval(2, self._auto_refresh)
 
     def _auto_refresh(self) -> None:
-        self.load_data()
+        self._refresh_data()
 
     @work
     async def load_data(self) -> None:
+        turns = await self.adapter.parse_transcript(self.session.id)
+        metrics = aggregate(self.session, turns)
+        metrics.alerts = detect_drift(turns)
+        self.metrics = metrics
+        self._last_turn_count = 0
+        self._update_panels(metrics)
+
+    @work
+    async def _refresh_data(self) -> None:
         turns = await self.adapter.parse_transcript(self.session.id)
         metrics = aggregate(self.session, turns)
         metrics.alerts = detect_drift(turns)
@@ -118,24 +128,37 @@ class DashboardScreen(Screen):
         self.query_one("#cost-panel", Static).update(cost_text)
 
         table = self.query_one("#turns-table", DataTable)
-        table.clear()
-        for turn in reversed(m.turns[-50:]):
-            tools = ", ".join(tc.name for tc in turn.tool_calls) or "—"
-            preview = turn.content_preview[:60].replace("\n", " ").strip()
-            table.add_row(
-                str(turn.number),
-                turn.timestamp.strftime("%H:%M:%S"),
-                turn.role,
-                f"{turn.usage.input_tokens:,}" if turn.usage.input_tokens else "—",
-                f"{turn.usage.output_tokens:,}" if turn.usage.output_tokens else "—",
-                f"{turn.usage.cache_read_tokens:,}" if turn.usage.cache_read_tokens else "—",
-                tools,
-                preview or "—",
-                key=str(turn.number),
-            )
+        current_count = len(m.turns)
+
+        if self._last_turn_count == 0:
+            table.clear()
+            for turn in m.turns[-50:]:
+                self._add_turn_row(table, turn)
+        elif current_count > self._last_turn_count:
+            new_turns = m.turns[self._last_turn_count:]
+            for turn in new_turns:
+                self._add_turn_row(table, turn)
+            table.move_cursor(row=table.row_count - 1)
+
+        self._last_turn_count = current_count
 
         self.sub_title = (
             f"{self.session.project_path} — {model} — ${m.total_cost:.2f}"
+        )
+
+    def _add_turn_row(self, table: DataTable, turn) -> None:
+        tools = ", ".join(tc.name for tc in turn.tool_calls) or "—"
+        preview = turn.content_preview[:60].replace("\n", " ").strip()
+        table.add_row(
+            str(turn.number),
+            turn.timestamp.strftime("%H:%M:%S"),
+            turn.role,
+            f"{turn.usage.input_tokens:,}" if turn.usage.input_tokens else "—",
+            f"{turn.usage.output_tokens:,}" if turn.usage.output_tokens else "—",
+            f"{turn.usage.cache_read_tokens:,}" if turn.usage.cache_read_tokens else "—",
+            tools,
+            preview or "—",
+            key=str(turn.number),
         )
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
