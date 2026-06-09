@@ -1,3 +1,5 @@
+import dataclasses
+
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -14,13 +16,14 @@ from tktop.metrics.types import SessionMetrics
 class AnalysisScreen(Screen):
     BINDINGS = [
         Binding("escape", "go_back", "Back"),
+        Binding("p", "pick_provider", "Provider"),
         Binding("q", "quit", "Quit"),
     ]
 
     def __init__(self, metrics: SessionMetrics, config: Config, **kwargs) -> None:
         super().__init__(**kwargs)
         self.metrics = metrics
-        self.config = config
+        self.config = dataclasses.replace(config)
 
     def compose(self) -> ComposeResult:
         m = self.metrics
@@ -41,8 +44,13 @@ class AnalysisScreen(Screen):
         )
         yield Footer()
 
+    def on_mount(self) -> None:
+        self._update_subtitle()
+        self.run_analysis()
+
+    def _update_subtitle(self) -> None:
         self.sub_title = (
-            f"Analysis — {m.session.project_path} — "
+            f"Analysis — {self.metrics.session.project_path} — "
             f"powered by {self.config.llm_provider}/{self._model_name()}"
         )
 
@@ -59,12 +67,11 @@ class AnalysisScreen(Screen):
             case _:
                 return "unknown"
 
-    def on_mount(self) -> None:
-        self.run_analysis()
-
     @work
     async def run_analysis(self) -> None:
         result_widget = self.query_one("#analysis-result", Markdown)
+        await result_widget.update("*Analyzing...*")
+
         provider = create_provider(self.config)
 
         if provider is None:
@@ -87,6 +94,21 @@ class AnalysisScreen(Screen):
             await result_widget.update(result)
         except Exception as e:
             await result_widget.update(f"**Error:** {e}")
+
+    def action_pick_provider(self) -> None:
+        from tktop.tui.screens.provider_picker import ProviderPickerScreen
+
+        self.app.push_screen(
+            ProviderPickerScreen(self.config),
+            callback=self._on_provider_selected,
+        )
+
+    def _on_provider_selected(self, provider: str | None) -> None:
+        if provider is None:
+            return
+        self.config.llm_provider = provider
+        self._update_subtitle()
+        self.run_analysis()
 
     def action_go_back(self) -> None:
         self.app.pop_screen()

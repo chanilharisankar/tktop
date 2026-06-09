@@ -48,8 +48,16 @@ HELP_TEXT = """\
 
  Overview:    ↑/↓ navigate  enter select  h history  r refresh  q quit
  Dashboard:   a analyze  enter turn detail  r refresh  escape back  q quit
+ Analysis:    p pick provider  escape back  q quit
  History:     r refresh  escape back  q quit
  All:         ? this help  q quit
+
+ CONFIGURATION
+ ─────────────
+
+ Settings file: ~/.tktop/settings.json (auto-created on first run)
+ CLI commands:  tktop config show  |  tktop config path
+ Load order:    settings.json < env vars < in-app selection
 """
 
 

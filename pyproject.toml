@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tktop = "tktop.cli:main"
+tktop = "tktop.cli:app"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
