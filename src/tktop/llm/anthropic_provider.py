@@ -1,5 +1,7 @@
 import httpx
 
+from tktop.llm.prompt import SYSTEM_PROMPT
+
 
 class AnthropicProvider:
     name = "anthropic"
@@ -20,6 +22,7 @@ class AnthropicProvider:
                 json={
                     "model": self.model,
                     "max_tokens": 4096,
+                    "system": SYSTEM_PROMPT,
                     "messages": [{"role": "user", "content": prompt}],
                 },
             )

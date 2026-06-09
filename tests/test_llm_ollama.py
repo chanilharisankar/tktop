@@ -12,7 +12,9 @@ async def test_ollama_analyze():
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "response": "Reduce cache creation by using smaller context windows."
+        "message": {
+            "content": "Reduce cache creation by using smaller context windows."
+        }
     }
     mock_response.raise_for_status = MagicMock()
 
@@ -22,10 +24,12 @@ async def test_ollama_analyze():
         assert result == "Reduce cache creation by using smaller context windows."
         mock_post.assert_called_once()
         call_args = mock_post.call_args
-        assert call_args[0][0] == "http://localhost:11434/api/generate"
+        assert call_args[0][0] == "http://localhost:11434/api/chat"
         body = call_args[1]["json"]
         assert body["model"] == "llama3"
-        assert body["prompt"] == "test prompt"
+        assert body["messages"][0]["role"] == "system"
+        assert body["messages"][1]["role"] == "user"
+        assert body["messages"][1]["content"] == "test prompt"
         assert body["stream"] is False
 
 

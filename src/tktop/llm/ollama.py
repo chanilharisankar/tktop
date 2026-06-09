@@ -1,5 +1,7 @@
 import httpx
 
+from tktop.llm.prompt import SYSTEM_PROMPT
+
 
 class OllamaProvider:
     name = "ollama"
@@ -11,16 +13,20 @@ class OllamaProvider:
     async def analyze(self, prompt: str) -> str:
         async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(
-                f"{self.host}/api/generate",
+                f"{self.host}/api/chat",
                 json={
                     "model": self.model,
-                    "prompt": prompt,
+                    "messages": [
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": prompt},
+                    ],
                     "stream": False,
                 },
             )
             response.raise_for_status()
             data = response.json()
-            return data.get("response", data.get("error", "No response from Ollama"))
+            msg = data.get("message", {})
+            return msg.get("content", data.get("error", "No response"))
 
     async def health_check(self) -> bool:
         try:

@@ -1,5 +1,7 @@
 import httpx
 
+from tktop.llm.prompt import SYSTEM_PROMPT
+
 
 class OpenAIProvider:
     name = "openai"
@@ -19,7 +21,10 @@ class OpenAIProvider:
                 },
                 json={
                     "model": self.model,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": [
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": prompt},
+                    ],
                     "max_tokens": 4096,
                 },
             )

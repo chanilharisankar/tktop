@@ -98,9 +98,9 @@ def test_prompt_contains_conversation_samples():
 
 def test_prompt_contains_instructions():
     prompt = build_analysis_prompt(_make_metrics())
-    assert "Input Optimization" in prompt
-    assert "Guardrail Advice" in prompt
-    assert "Tool Pruning" in prompt
+    assert "3-5" in prompt
+    assert "actionable" in prompt
+    assert "workflow" in prompt
 
 
 def test_prompt_no_alerts():

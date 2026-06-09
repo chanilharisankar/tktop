@@ -2,6 +2,8 @@ import subprocess  # nosec B404 — needed for gcloud auth
 
 import httpx
 
+from tktop.llm.prompt import SYSTEM_PROMPT
+
 
 class VertexProvider:
     name = "vertex"
@@ -30,6 +32,7 @@ class VertexProvider:
                 json={
                     "anthropic_version": "vertex-2023-10-16",
                     "max_tokens": 4096,
+                    "system": SYSTEM_PROMPT,
                     "messages": [{"role": "user", "content": prompt}],
                 },
             )
