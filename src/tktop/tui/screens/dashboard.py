@@ -134,11 +134,15 @@ class DashboardScreen(Screen):
             table.clear()
             for turn in m.turns[-50:]:
                 self._add_turn_row(table, turn)
+            if table.row_count > 0:
+                table.move_cursor(row=table.row_count - 1)
         elif current_count > self._last_turn_count:
+            was_at_bottom = table.cursor_row >= table.row_count - 2
             new_turns = m.turns[self._last_turn_count:]
             for turn in new_turns:
                 self._add_turn_row(table, turn)
-            table.move_cursor(row=table.row_count - 1)
+            if was_at_bottom:
+                table.move_cursor(row=table.row_count - 1)
 
         self._last_turn_count = current_count
 
