@@ -9,7 +9,7 @@ class OllamaProvider:
         self.model = model
 
     async def analyze(self, prompt: str) -> str:
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(
                 f"{self.host}/api/generate",
                 json={
@@ -19,7 +19,8 @@ class OllamaProvider:
                 },
             )
             response.raise_for_status()
-            return response.json()["response"]
+            data = response.json()
+            return data.get("response", data.get("error", "No response from Ollama"))
 
     async def health_check(self) -> bool:
         try:
