@@ -81,7 +81,7 @@ class DashboardScreen(Screen):
 
     def on_mount(self) -> None:
         table = self.query_one("#turns-table", DataTable)
-        table.add_columns("#", "Time", "Role", "In", "Out", "Cache", "Tools", "Preview")
+        table.add_columns("#", "Time", "Role", "Tokens", "Tools", "What")
         table.cursor_type = "row"
         self._last_turn_count = 0
         self.load_data()
@@ -148,14 +148,14 @@ class DashboardScreen(Screen):
 
     def _add_turn_row(self, table: DataTable, turn) -> None:
         tools = ", ".join(tc.name for tc in turn.tool_calls) or "—"
-        preview = turn.content_preview[:60].replace("\n", " ").strip()
+        preview = turn.content_preview[:100].replace("\n", " ").strip()
+        total = turn.usage.output_tokens + turn.usage.input_tokens
+        tokens = f"{total:,}" if total else "—"
         table.add_row(
             str(turn.number),
             turn.timestamp.strftime("%H:%M:%S"),
             turn.role,
-            f"{turn.usage.input_tokens:,}" if turn.usage.input_tokens else "—",
-            f"{turn.usage.output_tokens:,}" if turn.usage.output_tokens else "—",
-            f"{turn.usage.cache_read_tokens:,}" if turn.usage.cache_read_tokens else "—",
+            tokens,
             tools,
             preview or "—",
             key=str(turn.number),
