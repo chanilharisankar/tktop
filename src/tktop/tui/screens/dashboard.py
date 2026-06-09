@@ -81,7 +81,7 @@ class DashboardScreen(Screen):
 
     def on_mount(self) -> None:
         table = self.query_one("#turns-table", DataTable)
-        table.add_columns("#", "Time", "Role", "In", "Out", "Cache", "Tools")
+        table.add_columns("#", "Time", "Role", "In", "Out", "Cache", "Tools", "Preview")
         table.cursor_type = "row"
         self.load_data()
         self.set_interval(3, self._auto_refresh)
@@ -121,6 +121,7 @@ class DashboardScreen(Screen):
         table.clear()
         for turn in reversed(m.turns[-50:]):
             tools = ", ".join(tc.name for tc in turn.tool_calls) or "—"
+            preview = turn.content_preview[:60].replace("\n", " ").strip()
             table.add_row(
                 str(turn.number),
                 turn.timestamp.strftime("%H:%M:%S"),
@@ -129,6 +130,7 @@ class DashboardScreen(Screen):
                 f"{turn.usage.output_tokens:,}" if turn.usage.output_tokens else "—",
                 f"{turn.usage.cache_read_tokens:,}" if turn.usage.cache_read_tokens else "—",
                 tools,
+                preview or "—",
                 key=str(turn.number),
             )
 
