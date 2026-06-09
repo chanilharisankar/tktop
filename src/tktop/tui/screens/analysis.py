@@ -37,7 +37,12 @@ class AnalysisScreen(Screen):
 
         yield Header()
         yield Static(f" SESSION: {summary}", id="analysis-summary")
-        yield Static(" OPTIMIZATION RECOMMENDATIONS", classes="panel-title")
+        provider_label = f"{self.config.llm_provider}/{self._model_name()}"
+        yield Static(
+            f" OPTIMIZATION RECOMMENDATIONS  (using {provider_label})",
+            classes="panel-title",
+            id="reco-title",
+        )
         yield VerticalScroll(
             Markdown("*Analyzing...*", id="analysis-result"),
             id="analysis-scroll",
@@ -108,6 +113,10 @@ class AnalysisScreen(Screen):
             return
         self.config.llm_provider = provider
         self._update_subtitle()
+        provider_label = f"{self.config.llm_provider}/{self._model_name()}"
+        self.query_one("#reco-title", Static).update(
+            f" OPTIMIZATION RECOMMENDATIONS  (using {provider_label})"
+        )
         self.run_analysis()
 
     def action_go_back(self) -> None:
