@@ -65,6 +65,17 @@ make test     # run tests
 make clean    # clean build artifacts
 ```
 
+### Devbox
+
+If you have the Devbox CLI installed, you can bootstrap the repo with:
+
+```bash
+devbox shell
+```
+
+On first entry, the shell creates `.venv`, installs `.[dev]`, and activates the
+environment for the session.
+
 License: MIT. See [LICENSE](LICENSE).
 
 Repository instructions for Codex are in [`AGENTS.md`](AGENTS.md). The current

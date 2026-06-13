@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/main/.devbox.schema.json",
+  "packages": [
+    "python@3.13",
+    "git",
+    "uv"
+  ],
+  "shell": {
+    "init_hook": "if [ ! -f .venv/.tktop-devbox-ready ]; then\n  python -m venv .venv\n  . .venv/bin/activate\n  python -m pip install --upgrade pip\n  python -m pip install -e \".[dev]\"\n  touch .venv/.tktop-devbox-ready\nfi\n. .venv/bin/activate\n",
+    "scripts": {
+      "check": "make check",
+      "lint": "make lint",
+      "test": "make test"
+    }
+  }
+}

@@ -12,6 +12,7 @@ Thumbs.db
 # Environment
 .env
 .env.*
+.devbox/
 
 # Build
 build/
