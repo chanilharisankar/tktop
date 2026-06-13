@@ -11,6 +11,7 @@ from tktop.metrics.aggregator import aggregate
 from tktop.metrics.drift import detect_drift
 from tktop.metrics.types import SessionInfo, SessionMetrics
 from tktop.tui.widgets.alert_panel import AlertPanel
+from tktop.tui.widgets.cost_graph import CostGraph
 from tktop.tui.widgets.token_bars import TokenBars
 from tktop.tui.widgets.token_graph import TokenGraph
 from tktop.tui.widgets.tool_table import ToolTable
@@ -44,7 +45,7 @@ class DashboardScreen(Screen):
                 ),
                 Vertical(
                     Static(" COST", classes="panel-title"),
-                    Static(" Loading...", id="cost-panel"),
+                    CostGraph(id="cost-graph"),
                     classes="panel",
                 ),
             ),
@@ -99,7 +100,7 @@ class DashboardScreen(Screen):
         self._last_turn_count = 0
         self._update_panels(metrics)
 
-    @work
+    @work(exclusive=True)
     async def _refresh_data(self) -> None:
         turns = await self.adapter.parse_transcript(self.session.id)
         metrics = aggregate(self.session, turns)
@@ -108,24 +109,20 @@ class DashboardScreen(Screen):
         self._update_panels(metrics)
 
     def _update_panels(self, m: SessionMetrics) -> None:
-        self.query_one("#token-bars", TokenBars).update_usage(m.total_usage)
-        self.query_one("#tool-table", ToolTable).update_stats(m.tool_stats)
-        self.query_one("#alert-panel", AlertPanel).update_alerts(m.alerts)
-        if self.config.show_token_flow:
-            self.query_one("#token-graph", TokenGraph).update_data(m.tokens_per_turn)
-
         model = self.session.model or "claude-sonnet-4-6"
         for turn in reversed(m.turns):
             if turn.model:
                 model = turn.model
                 break
 
-        cost_text = (
-            f" Model:       {model}\n"
-            f" Total cost:  ${m.total_cost:.4f}\n"
-            f" Turns:       {len(m.turns)}"
+        self.query_one("#token-bars", TokenBars).update_usage(m.total_usage, model)
+        self.query_one("#tool-table", ToolTable).update_stats(m.tool_stats)
+        self.query_one("#alert-panel", AlertPanel).update_alerts(m.alerts)
+        self.query_one("#cost-graph", CostGraph).update_data(
+            m.cost_per_turn, m.total_cost, len(m.turns), m.turn_costs
         )
-        self.query_one("#cost-panel", Static).update(cost_text)
+        if self.config.show_token_flow:
+            self.query_one("#token-graph", TokenGraph).update_data(m.tokens_per_turn)
 
         table = self.query_one("#turns-table", DataTable)
         current_count = len(m.turns)

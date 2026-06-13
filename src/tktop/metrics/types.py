@@ -41,6 +41,19 @@ class Turn:
 
 
 @dataclass
+class TurnCost:
+    turn_number: int
+    input_cost: float = 0.0
+    output_cost: float = 0.0
+    cache_write_cost: float = 0.0
+    cache_read_cost: float = 0.0
+
+    @property
+    def total(self) -> float:
+        return self.input_cost + self.output_cost + self.cache_write_cost + self.cache_read_cost
+
+
+@dataclass
 class Alert:
     severity: str
     type: str
@@ -78,3 +91,5 @@ class SessionMetrics:
     tool_stats: dict[str, ToolStat] = field(default_factory=dict)
     alerts: list[Alert] = field(default_factory=list)
     tokens_per_turn: list[int] = field(default_factory=list)
+    cost_per_turn: list[float] = field(default_factory=list)
+    turn_costs: list[TurnCost] = field(default_factory=list)

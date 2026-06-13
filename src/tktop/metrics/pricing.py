@@ -31,3 +31,18 @@ def calculate_cost(model: str, usage: TokenUsage) -> float:
     cost += usage.cache_creation_tokens * pricing.cache_write_per_million / 1_000_000
     cost += usage.cache_read_tokens * pricing.cache_read_per_million / 1_000_000
     return cost
+
+
+def calculate_cost_breakdown(
+    model: str, usage: TokenUsage
+) -> tuple[float, float, float, float]:
+    pricing = MODEL_PRICING.get(model)
+    if pricing is None:
+        return (0.0, 0.0, 0.0, 0.0)
+
+    return (
+        usage.input_tokens * pricing.input_per_million / 1_000_000,
+        usage.output_tokens * pricing.output_per_million / 1_000_000,
+        usage.cache_creation_tokens * pricing.cache_write_per_million / 1_000_000,
+        usage.cache_read_tokens * pricing.cache_read_per_million / 1_000_000,
+    )

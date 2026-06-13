@@ -1,4 +1,4 @@
-from tktop.metrics.types import TokenUsage
+from tktop.metrics.types import TokenUsage, TurnCost
 
 
 def test_token_usage_total():
@@ -29,3 +29,19 @@ def test_token_usage_billable():
         cache_read_tokens=400,
     )
     assert usage.billable == 300  # only input + output
+
+
+def test_turn_cost_total():
+    tc = TurnCost(
+        turn_number=1,
+        input_cost=0.50,
+        output_cost=0.25,
+        cache_write_cost=0.10,
+        cache_read_cost=0.05,
+    )
+    assert abs(tc.total - 0.90) < 0.0001
+
+
+def test_turn_cost_total_zeros():
+    tc = TurnCost(turn_number=1)
+    assert tc.total == 0.0

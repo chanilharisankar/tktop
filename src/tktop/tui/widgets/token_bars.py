@@ -8,10 +8,16 @@ class TokenBars(Static):
     def __init__(self, usage: TokenUsage | None = None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.usage = usage or TokenUsage()
+        self.model = ""
 
     def render(self) -> Text:
         total = self.usage.total
         text = Text()
+
+        if self.model:
+            text.append(" Model ", style="dim")
+            text.append(self.model, style="bold cyan")
+            text.append("\n\n")
 
         bars = [
             ("Input      ", self.usage.input_tokens, "blue"),
@@ -39,8 +45,10 @@ class TokenBars(Static):
         text.append(f"{_fmt(total)} tokens", style="dim")
         return text
 
-    def update_usage(self, usage: TokenUsage) -> None:
+    def update_usage(self, usage: TokenUsage, model: str = "") -> None:
         self.usage = usage
+        if model:
+            self.model = model
         self.refresh()
 
 

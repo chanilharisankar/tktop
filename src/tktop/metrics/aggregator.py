@@ -1,10 +1,11 @@
-from tktop.metrics.pricing import calculate_cost
+from tktop.metrics.pricing import calculate_cost, calculate_cost_breakdown
 from tktop.metrics.types import (
     SessionInfo,
     SessionMetrics,
     TokenUsage,
     ToolStat,
     Turn,
+    TurnCost,
 )
 
 
@@ -12,6 +13,8 @@ def aggregate(session: SessionInfo, turns: list[Turn]) -> SessionMetrics:
     total_usage = TokenUsage()
     tool_stats: dict[str, ToolStat] = {}
     tokens_per_turn: list[int] = []
+    cost_per_turn: list[float] = []
+    turn_costs: list[TurnCost] = []
     model = session.model
 
     for turn in turns:
@@ -27,6 +30,18 @@ def aggregate(session: SessionInfo, turns: list[Turn]) -> SessionMetrics:
 
         if turn.model:
             model = turn.model
+
+        cumulative_cost = calculate_cost(model, total_usage)
+        cost_per_turn.append(cumulative_cost)
+
+        inp, out, cw, cr = calculate_cost_breakdown(model, turn.usage)
+        turn_costs.append(TurnCost(
+            turn_number=turn.number,
+            input_cost=inp,
+            output_cost=out,
+            cache_write_cost=cw,
+            cache_read_cost=cr,
+        ))
 
         tools_in_turn: set[str] = set()
         for tc in turn.tool_calls:
@@ -47,4 +62,6 @@ def aggregate(session: SessionInfo, turns: list[Turn]) -> SessionMetrics:
         total_cost=total_cost,
         tool_stats=tool_stats,
         tokens_per_turn=tokens_per_turn,
+        cost_per_turn=cost_per_turn,
+        turn_costs=turn_costs,
     )

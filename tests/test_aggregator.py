@@ -122,3 +122,119 @@ def test_aggregate_tokens_per_turn():
 
     result = aggregate(_make_session(), turns)
     assert result.tokens_per_turn == [100, 250]
+
+
+def test_aggregate_cost_per_turn_is_cumulative():
+    turns = [
+        Turn(
+            number=1,
+            timestamp=datetime.now(tz=UTC),
+            role="assistant",
+            model="claude-sonnet-4-6",
+            usage=TokenUsage(input_tokens=1000, output_tokens=500),
+        ),
+        Turn(
+            number=2,
+            timestamp=datetime.now(tz=UTC),
+            role="assistant",
+            model="claude-sonnet-4-6",
+            usage=TokenUsage(input_tokens=2000, output_tokens=1000),
+        ),
+    ]
+
+    result = aggregate(_make_session(), turns)
+
+    assert len(result.cost_per_turn) == 2
+    assert result.cost_per_turn[0] > 0
+    assert result.cost_per_turn[1] > result.cost_per_turn[0]
+    assert abs(result.cost_per_turn[-1] - result.total_cost) < 0.0001
+
+
+def test_aggregate_cost_per_turn_skips_user_turns():
+    turns = [
+        Turn(
+            number=1,
+            timestamp=datetime.now(tz=UTC),
+            role="user",
+            model=None,
+            usage=TokenUsage(),
+        ),
+        Turn(
+            number=2,
+            timestamp=datetime.now(tz=UTC),
+            role="assistant",
+            model="claude-sonnet-4-6",
+            usage=TokenUsage(input_tokens=1000, output_tokens=500),
+        ),
+        Turn(
+            number=3,
+            timestamp=datetime.now(tz=UTC),
+            role="user",
+            model=None,
+            usage=TokenUsage(),
+        ),
+    ]
+
+    result = aggregate(_make_session(), turns)
+    assert len(result.cost_per_turn) == 1
+
+
+def test_aggregate_cost_per_turn_empty():
+    result = aggregate(_make_session(), [])
+    assert result.cost_per_turn == []
+
+
+def test_aggregate_turn_costs_breakdown():
+    turns = [
+        Turn(
+            number=1,
+            timestamp=datetime.now(tz=UTC),
+            role="assistant",
+            model="claude-sonnet-4-6",
+            usage=TokenUsage(
+                input_tokens=1_000_000,
+                output_tokens=100_000,
+                cache_creation_tokens=50_000,
+                cache_read_tokens=200_000,
+            ),
+        ),
+    ]
+
+    result = aggregate(_make_session(), turns)
+
+    assert len(result.turn_costs) == 1
+    tc = result.turn_costs[0]
+    assert tc.turn_number == 1
+    assert abs(tc.input_cost - 3.0) < 0.01
+    assert abs(tc.output_cost - 1.5) < 0.01
+    assert abs(tc.cache_write_cost - 0.1875) < 0.001
+    assert abs(tc.cache_read_cost - 0.06) < 0.001
+    assert abs(tc.total - (3.0 + 1.5 + 0.1875 + 0.06)) < 0.01
+
+
+def test_aggregate_turn_costs_skips_user_turns():
+    turns = [
+        Turn(
+            number=1,
+            timestamp=datetime.now(tz=UTC),
+            role="user",
+            model=None,
+            usage=TokenUsage(),
+        ),
+        Turn(
+            number=2,
+            timestamp=datetime.now(tz=UTC),
+            role="assistant",
+            model="claude-sonnet-4-6",
+            usage=TokenUsage(input_tokens=1000, output_tokens=500),
+        ),
+    ]
+
+    result = aggregate(_make_session(), turns)
+    assert len(result.turn_costs) == 1
+    assert result.turn_costs[0].turn_number == 2
+
+
+def test_aggregate_turn_costs_empty():
+    result = aggregate(_make_session(), [])
+    assert result.turn_costs == []
