@@ -64,6 +64,8 @@ make test     # run tests
 make clean    # clean build artifacts
 ```
 
+License: MIT. See [LICENSE](LICENSE).
+
 Repository instructions for Codex are in [`AGENTS.md`](AGENTS.md). The current
 design is documented in
 [`docs/specs/2026-06-08-tktop-design.md`](docs/specs/2026-06-08-tktop-design.md).
