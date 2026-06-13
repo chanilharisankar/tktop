@@ -1,4 +1,4 @@
-.PHONY: install run test lint security audit check binary clean
+.PHONY: install run test lint security audit check binary clean release
 
 install:
 	pip install -e ".[dev]"
@@ -28,3 +28,7 @@ binary:
 clean:
 	rm -rf build/ dist/ *.egg-info src/*.egg-info *.spec
 	find . -type d -name __pycache__ -exec rm -rf {} +
+
+release:
+	@test -n "$(VERSION)" || (echo "VERSION is required, for example: make release VERSION=0.1.1"; exit 1)
+	python3 scripts/release.py "$(VERSION)"

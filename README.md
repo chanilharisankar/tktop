@@ -71,6 +71,12 @@ Local development still uses an editable install:
 pip install -e ".[dev]"
 ```
 
+For maintainers, a versioned release can be prepared with:
+
+```bash
+make release VERSION=0.1.1
+```
+
 ### Devbox
 
 If you have the Devbox CLI installed, you can bootstrap the repo with:
