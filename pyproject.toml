@@ -6,8 +6,21 @@ build-backend = "hatchling.build"
 name = "tktop"
 version = "0.1.0"
 description = "Token monitor for coding agents — like htop for AI spend"
+readme = "README.md"
 requires-python = ">=3.13"
 license = { file = "LICENSE" }
+authors = [{ name = "Harisan Sankar" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Utilities",
+]
 dependencies = [
     "textual>=1.0.0",
     "rich>=13.0.0",
@@ -16,6 +29,11 @@ dependencies = [
     "watchfiles>=0.21.0",
     "python-dotenv>=1.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/chanilharisankar/tktop"
+Repository = "https://github.com/chanilharisankar/tktop"
+Issues = "https://github.com/chanilharisankar/tktop/issues"
 
 [project.scripts]
 tktop = "tktop.cli:app"

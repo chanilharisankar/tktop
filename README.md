@@ -15,11 +15,11 @@ Token monitor for coding agents. Like `htop` for your AI spend.
 ## Install
 
 ```bash
-# From source
-git clone <repo>
-cd tktop
-pip install -e ".[dev]"
-tktop
+# From PyPI
+pip install tktop
+
+# Upgrade to the latest release
+pip install -U tktop
 ```
 
 ## Usage
@@ -63,6 +63,12 @@ Supported providers: `ollama` (default), `anthropic`, `vertex`, `openai`
 make install  # install in dev mode
 make test     # run tests
 make clean    # clean build artifacts
+```
+
+Local development still uses an editable install:
+
+```bash
+pip install -e ".[dev]"
 ```
 
 ### Devbox
