@@ -11,7 +11,9 @@ SETTINGS_FILE = SETTINGS_DIR / "settings.json"
 
 @dataclass
 class Config:
+    session_adapter: str = "auto"
     claude_dir: str = ""
+    codex_dir: str = ""
     llm_provider: str = "ollama"
 
     ollama_host: str = "http://localhost:11434"
@@ -34,8 +36,17 @@ class Config:
 def _default_settings() -> dict:
     return {
         "default_provider": "ollama",
+        "session_adapter": "auto",
         "ui": {
             "show_token_flow": False,  # nosec B105 — not a password
+        },
+        "agents": {
+            "claude": {
+                "dir": str(Path.home() / ".claude"),
+            },
+            "codex": {
+                "dir": str(Path.home() / ".codex"),
+            },
         },
         "providers": {
             "ollama": {
@@ -80,10 +91,24 @@ def _load_settings_file(path: Path | None = None) -> dict:
 def _apply_settings(cfg: Config, settings: dict) -> None:
     if "default_provider" in settings:
         cfg.llm_provider = settings["default_provider"]
+    if "session_adapter" in settings:
+        cfg.session_adapter = settings["session_adapter"]
+    if "claude_dir" in settings:
+        cfg.claude_dir = settings["claude_dir"]
+    if "codex_dir" in settings:
+        cfg.codex_dir = settings["codex_dir"]
 
     ui = settings.get("ui", {})
     if "show_token_flow" in ui:
         cfg.show_token_flow = ui["show_token_flow"]
+
+    agents = settings.get("agents", {})
+    claude = agents.get("claude", {})
+    if "dir" in claude:
+        cfg.claude_dir = claude["dir"]
+    codex = agents.get("codex", {})
+    if "dir" in codex:
+        cfg.codex_dir = codex["dir"]
 
     providers = settings.get("providers", {})
 
@@ -120,7 +145,10 @@ def load_config(settings_path: Path | None = None) -> Config:
     load_dotenv()
 
     home = Path.home()
-    cfg = Config(claude_dir=str(home / ".claude"))
+    cfg = Config(
+        claude_dir=str(home / ".claude"),
+        codex_dir=str(home / ".codex"),
+    )
 
     # Layer 1: settings.json
     settings = _load_settings_file(settings_path)
@@ -128,7 +156,9 @@ def load_config(settings_path: Path | None = None) -> Config:
 
     # Layer 2: env vars override settings.json
     env_map = {
+        "TKTOP_SESSION_ADAPTER": "session_adapter",
         "TKTOP_CLAUDE_DIR": "claude_dir",
+        "TKTOP_CODEX_DIR": "codex_dir",
         "TKTOP_LLM_PROVIDER": "llm_provider",
         "TKTOP_OLLAMA_HOST": "ollama_host",
         "TKTOP_OLLAMA_MODEL": "ollama_model",
@@ -170,9 +200,19 @@ def _mask_key(key: str) -> str:
 def get_resolved_config_as_dict(cfg: Config) -> dict:
     return {
         "default_provider": cfg.llm_provider,
+        "session_adapter": cfg.session_adapter,
         "claude_dir": cfg.claude_dir,
+        "codex_dir": cfg.codex_dir,
         "ui": {
             "show_token_flow": cfg.show_token_flow,
+        },
+        "agents": {
+            "claude": {
+                "dir": cfg.claude_dir,
+            },
+            "codex": {
+                "dir": cfg.codex_dir,
+            },
         },
         "providers": {
             "ollama": {

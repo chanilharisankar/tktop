@@ -223,7 +223,7 @@ def _detect_cost_spike(turns: list[Turn]) -> list[Alert]:
 
     costs = []
     for t in assistant_turns:
-        model = t.model or "claude-sonnet-4-6"
+        model = t.model or "unknown"
         costs.append(calculate_cost(model, t.usage))
 
     avg_cost = sum(costs) / len(costs)

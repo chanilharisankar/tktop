@@ -12,8 +12,8 @@ HELP_TEXT = """\
  TOKEN USAGE
    Breakdown of tokens sent to and received from the LLM.
    • Input       — Fresh tokens sent (not cached). Usually small after turn 1.
-   • Cache Write — Tokens written to Anthropic's server-side cache. 1.25x input rate.
-   • Cache Read  — Tokens served from cache. 10x cheaper. High % = good.
+   • Cache Write — Tokens written to the provider cache. Usually near input rate.
+   • Cache Read  — Tokens served from cache. Much cheaper than fresh input.
    • Output      — Tokens the model generated. Most expensive. Dominates cost.
 
  TOKEN FLOW
@@ -52,12 +52,13 @@ HELP_TEXT = """\
  History:     r refresh  escape back  q quit
  All:         ? this help  q quit
 
- CONFIGURATION
+CONFIGURATION
  ─────────────
 
  Settings file: ~/.tktop/settings.json (auto-created on first run)
  CLI commands:  tktop config show  |  tktop config path
  Load order:    settings.json < env vars < in-app selection
+ Agent roots:   configure `session_adapter`, `claude_dir`, or `codex_dir`
 """
 
 

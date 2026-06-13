@@ -109,7 +109,7 @@ class DashboardScreen(Screen):
         self._update_panels(metrics)
 
     def _update_panels(self, m: SessionMetrics) -> None:
-        model = self.session.model or "claude-sonnet-4-6"
+        model = self.session.model or "unknown"
         for turn in reversed(m.turns):
             if turn.model:
                 model = turn.model

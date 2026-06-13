@@ -42,6 +42,7 @@ tktop              # launch interactive session list
 ## Supported Agents
 
 - [x] Claude Code
+- [x] Codex
 - [ ] Cursor (planned)
 - [ ] Aider (planned)
 

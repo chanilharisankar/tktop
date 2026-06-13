@@ -52,7 +52,7 @@ class OverviewScreen(Screen):
         await container.remove_children()
 
         if not all_sessions:
-            await container.mount(Static(" No sessions found in ~/.claude/sessions/"))
+            await container.mount(Static(" No sessions found in the configured agent data roots"))
             return
 
         now = datetime.now(tz=UTC)

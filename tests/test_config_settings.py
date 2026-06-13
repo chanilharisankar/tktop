@@ -11,7 +11,11 @@ from tktop.config import (
 def test_default_settings_structure():
     settings = _default_settings()
     assert settings["default_provider"] == "ollama"
+    assert settings["session_adapter"] == "auto"
     assert "ui" in settings
+    assert "agents" in settings
+    assert "claude" in settings["agents"]
+    assert "codex" in settings["agents"]
     assert "providers" in settings
     assert "ollama" in settings["providers"]
     assert "anthropic" in settings["providers"]

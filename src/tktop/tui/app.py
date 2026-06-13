@@ -2,7 +2,7 @@ from textual import on
 from textual.app import App
 from textual.binding import Binding
 
-from tktop.adapter.claude import ClaudeCodeAdapter
+from tktop.adapter.factory import create_adapter
 from tktop.config import Config, load_config
 from tktop.tui.screens.overview import OverviewScreen, SessionSelected
 
@@ -21,7 +21,7 @@ class TktopApp(App):
     def __init__(self, config: Config | None = None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.config = config or load_config()
-        self.adapter = ClaudeCodeAdapter(self.config.claude_dir)
+        self.adapter = create_adapter(self.config)
 
     def on_mount(self) -> None:
         self.push_screen(OverviewScreen(self.adapter))

@@ -5,6 +5,7 @@ from tktop.config import get_resolved_config_as_dict, load_config
 
 def _clear_tktop_env(monkeypatch):
     for var in (
+        "TKTOP_SESSION_ADAPTER", "TKTOP_CLAUDE_DIR", "TKTOP_CODEX_DIR",
         "TKTOP_LLM_PROVIDER", "TKTOP_OLLAMA_HOST", "TKTOP_OLLAMA_MODEL",
         "TKTOP_ANTHROPIC_API_KEY", "TKTOP_ANTHROPIC_MODEL",
         "TKTOP_VERTEX_PROJECT", "TKTOP_VERTEX_REGION", "TKTOP_VERTEX_MODEL",
@@ -19,7 +20,9 @@ def test_load_config_defaults(tmp_path, monkeypatch):
     _clear_tktop_env(monkeypatch)
     settings_path = tmp_path / "settings.json"
     cfg = load_config(settings_path=settings_path)
+    assert cfg.session_adapter == "auto"
     assert cfg.claude_dir.endswith(".claude")
+    assert cfg.codex_dir.endswith(".codex")
     assert cfg.llm_provider == "ollama"
     assert cfg.ollama_host == "http://localhost:11434"
     assert cfg.ollama_model == "llama3"
@@ -139,10 +142,12 @@ def test_get_resolved_config_masks_keys():
     from tktop.config import Config
 
     cfg = Config(
+        session_adapter="codex",
         anthropic_api_key="sk-ant-very-secret-key-12345678",
         openai_api_key="sk-openai-secret",
     )
     result = get_resolved_config_as_dict(cfg)
+    assert result["session_adapter"] == "codex"
     assert result["providers"]["anthropic"]["api_key"].endswith("5678")
     assert result["providers"]["anthropic"]["api_key"].startswith("*")
     assert result["providers"]["openai"]["api_key"].endswith("cret")

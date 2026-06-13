@@ -17,6 +17,10 @@ class ClaudeCodeAdapter:
     def __init__(self, base_dir: str) -> None:
         self.base_dir = Path(base_dir)
 
+    @classmethod
+    def is_available(cls, base_dir: str) -> bool:
+        return (Path(base_dir) / "sessions").exists()
+
     async def discover(self) -> list[SessionInfo]:
         sessions_dir = self.base_dir / "sessions"
         if not sessions_dir.exists():

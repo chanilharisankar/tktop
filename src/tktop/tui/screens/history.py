@@ -85,7 +85,7 @@ class HistoryScreen(Screen):
                 stats.usage.cache_creation_tokens += turn.usage.cache_creation_tokens
                 stats.usage.cache_read_tokens += turn.usage.cache_read_tokens
 
-                model = turn.model or "claude-sonnet-4-6"
+                model = turn.model or session.model or "unknown"
                 stats.cost += calculate_cost(model, turn.usage)
 
         table = self.query_one("#history-table", DataTable)
