@@ -50,14 +50,69 @@ tktop              # launch interactive session list
 
 ## LLM Analysis
 
-Copy `.env.example` to `.env` and configure:
+The settings file is created at `~/.tktop/settings.json` the first time `tktop`
+loads its configuration. View its path and resolved values with:
 
 ```bash
-cp .env.example .env
-# Edit .env with your provider settings
+tktop config path
+tktop config show
 ```
 
-Supported providers: `ollama` (default), `anthropic`, `vertex`, `openai`
+Example configuration:
+
+```json
+{
+  "session_adapter": "auto",
+  "default_provider": "ollama",
+  "ui": {
+    "show_token_flow": false
+  },
+  "agents": {
+    "claude": {
+      "dir": "~/.claude"
+    },
+    "codex": {
+      "dir": "~/.codex"
+    }
+  },
+  "providers": {
+    "ollama": {
+      "host": "http://localhost:11434",
+      "model": "llama3"
+    },
+    "anthropic": {
+      "api_key": "",
+      "model": "claude-sonnet-4-6"
+    },
+    "vertex": {
+      "project": "",
+      "region": "us-east5",
+      "model": "claude-sonnet-4-6"
+    },
+    "openai": {
+      "base_url": "https://api.openai.com/v1",
+      "api_key": "",
+      "model": "gpt-4o"
+    }
+  }
+}
+```
+
+`session_adapter` accepts `auto`, `claude`, or `codex`. Supported analysis
+providers are `ollama`, `anthropic`, `vertex`, and `openai`.
+
+Environment variables override `settings.json`. Common overrides are:
+
+```bash
+TKTOP_SESSION_ADAPTER=codex
+TKTOP_CODEX_DIR=~/.codex
+TKTOP_LLM_PROVIDER=openai
+TKTOP_OPENAI_API_KEY=sk-...
+TKTOP_OPENAI_MODEL=gpt-4o
+```
+
+For source checkouts, `.env.example` lists all supported environment variables.
+Prefer environment variables for API keys instead of storing secrets in JSON.
 
 ## Development
 

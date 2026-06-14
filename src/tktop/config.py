@@ -188,6 +188,9 @@ def load_config(settings_path: Path | None = None) -> Config:
     if os.getenv("CLAUDE_CODE_USE_VERTEX") == "1" and cfg.llm_provider == "ollama":
         cfg.llm_provider = "vertex"
 
+    cfg.claude_dir = str(Path(cfg.claude_dir).expanduser())
+    cfg.codex_dir = str(Path(cfg.codex_dir).expanduser())
+
     return cfg
 
 

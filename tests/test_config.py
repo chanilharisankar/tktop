@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from tktop.config import get_resolved_config_as_dict, load_config
 
@@ -35,6 +36,23 @@ def test_load_config_env_override(tmp_path, monkeypatch):
     cfg = load_config(settings_path=tmp_path / "settings.json")
     assert cfg.llm_provider == "anthropic"
     assert cfg.anthropic_api_key == "sk-test-123"
+
+
+def test_agent_directories_expand_home(tmp_path, monkeypatch):
+    _clear_tktop_env(monkeypatch)
+    settings = {
+        "agents": {
+            "claude": {"dir": "~/.custom-claude"},
+            "codex": {"dir": "~/.custom-codex"},
+        },
+    }
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(json.dumps(settings))
+
+    cfg = load_config(settings_path=settings_path)
+
+    assert cfg.claude_dir == str(Path.home() / ".custom-claude")
+    assert cfg.codex_dir == str(Path.home() / ".custom-codex")
 
 
 def test_load_config_vertex(tmp_path, monkeypatch):

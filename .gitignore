@@ -41,6 +41,7 @@ __pycache__/
 
 # Virtual environments
 .venv/
+.venvs/
 venv/
 
 # PyInstaller

@@ -58,7 +58,23 @@ CONFIGURATION
  Settings file: ~/.tktop/settings.json (auto-created on first run)
  CLI commands:  tktop config show  |  tktop config path
  Load order:    settings.json < env vars < in-app selection
- Agent roots:   configure `session_adapter`, `claude_dir`, or `codex_dir`
+
+ Session adapter:
+   "session_adapter": "auto" | "claude" | "codex"
+   "agents.claude.dir": "~/.claude"
+   "agents.codex.dir": "~/.codex"
+
+ Analysis provider:
+   "default_provider": "ollama" | "anthropic" | "vertex" | "openai"
+   Configure the matching entry under "providers".
+
+ Common environment overrides:
+   TKTOP_SESSION_ADAPTER, TKTOP_CLAUDE_DIR, TKTOP_CODEX_DIR
+   TKTOP_LLM_PROVIDER, TKTOP_OLLAMA_HOST, TKTOP_OLLAMA_MODEL
+   TKTOP_ANTHROPIC_API_KEY, TKTOP_OPENAI_API_KEY
+
+ Run `tktop config show` to inspect the resolved configuration.
+ See the README for a complete settings.json example.
 """
 
 
