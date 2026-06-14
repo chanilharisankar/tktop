@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from tktop.llm.prompt import build_analysis_prompt
 from tktop.metrics.types import (
@@ -10,6 +10,8 @@ from tktop.metrics.types import (
     ToolStat,
     Turn,
 )
+
+UTC = timezone.utc
 
 
 def _make_metrics() -> SessionMetrics:

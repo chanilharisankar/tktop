@@ -1,6 +1,8 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from tktop.metrics.types import Alert, Turn
+
+UTC = timezone.utc
 
 
 def detect_drift(turns: list[Turn]) -> list[Alert]:

@@ -1,7 +1,9 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from tktop.metrics.aggregator import aggregate
 from tktop.metrics.types import SessionInfo, TokenUsage, ToolCall, Turn
+
+UTC = timezone.utc
 
 
 def _make_session() -> SessionInfo:

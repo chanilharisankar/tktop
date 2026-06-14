@@ -1,7 +1,9 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from tktop.metrics.drift import detect_drift
 from tktop.metrics.types import TokenUsage, ToolCall, Turn
+
+UTC = timezone.utc
 
 
 def _turn(

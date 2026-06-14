@@ -18,7 +18,7 @@ tktop solves this by reading agent session data directly from local files, prese
 
 | Component | Technology | Rationale |
 |---|---|---|
-| Language | Python 3.13+ | Agentic LLM ecosystem is Python-first (Anthropic SDK, LangChain, etc.). Already installed. Textual provides excellent TUI. Future server/agentic features benefit from Python. |
+| Language | Python 3.10+ | Agentic LLM ecosystem is Python-first (Anthropic SDK, LangChain, etc.). Textual provides excellent TUI. Future server/agentic features benefit from Python. |
 | TUI framework | Textual | Full-screen interactive apps, CSS-based styling, async-native, built-in widgets (DataTable, TabbedContent, Sparkline), mouse support. btop-level UI quality. |
 | Terminal formatting | Rich | Beautiful tables, progress bars, colors. Textual is built on Rich. |
 | CLI entry point | Typer | Argument parsing, auto-generated help, subcommand support (`tktop config show`). |
@@ -888,7 +888,7 @@ tktop/
 - `ruff>=0.8.0`, `bandit>=1.7.0`, `pip-audit>=2.7.0`
 
 **Ruff config:**
-- Target: Python 3.13, line length 100
+- Target: Python 3.10, line length 100
 - Rules: E, W, F, I (isort), S (bandit), B (bugbear), UP (pyupgrade)
 - Ignores: S603/S607 (subprocess for gcloud), S101 in tests (assert)
 

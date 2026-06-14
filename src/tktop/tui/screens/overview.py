@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from textual import work
 from textual.app import ComposeResult
@@ -11,6 +11,8 @@ from textual.widgets import Footer, Header, Static
 from tktop.adapter.protocol import SessionAdapter
 from tktop.metrics.types import SessionInfo
 from tktop.tui.widgets.session_card import SessionCard
+
+UTC = timezone.utc
 
 
 class SessionSelected(Message):

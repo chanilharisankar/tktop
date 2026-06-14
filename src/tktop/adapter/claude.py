@@ -1,6 +1,6 @@
 import json
 from collections.abc import AsyncIterator
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from tktop.metrics.types import (
@@ -9,6 +9,8 @@ from tktop.metrics.types import (
     ToolCall,
     Turn,
 )
+
+UTC = timezone.utc
 
 
 class ClaudeCodeAdapter:

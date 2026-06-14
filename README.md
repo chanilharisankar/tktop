@@ -14,6 +14,8 @@ Token monitor for coding agents. Like `htop` for your AI spend.
 
 ## Install
 
+Requires Python 3.10 or newer.
+
 ```bash
 # From PyPI
 pip install tktop

@@ -1,10 +1,16 @@
 import json
-import tomllib
 from collections.abc import AsyncIterator
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from tktop.metrics.types import SessionInfo, TokenUsage, ToolCall, Turn
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
+UTC = timezone.utc
 
 
 class CodexAdapter:
