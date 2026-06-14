@@ -1,11 +1,37 @@
-name: CI
+name: Pull Request CI
 
 on:
-  push:
   pull_request:
 
+concurrency:
+  group: pr-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  test:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install Ruff
+        run: python -m pip install ruff
+
+      - name: Run lint checks
+        run: ruff check src tests scripts
+
+  unit-tests:
+    name: Unit tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -13,32 +39,55 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
 
-      - name: Install tooling
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]" build
+      - name: Install project and test dependencies
+        run: python -m pip install -e ".[dev]"
 
-      - name: Lint
-        run: ruff check src tests scripts
-
-      - name: Security scan
-        run: bandit -r src/tktop/ scripts/ -q
-
-      - name: Test
+      - name: Run unit tests
         run: pytest -q
 
-      - name: Build distributions
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full repository history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install build tooling
+        run: python -m pip install build
+
+      - name: Build source and wheel distributions
         run: python -m build
 
       - name: Smoke-test wheel install
-        if: matrix.python-version == '3.10'
         run: |
           python -m venv /tmp/tktop-wheel-smoke
           /tmp/tktop-wheel-smoke/bin/python -m pip install --upgrade pip
