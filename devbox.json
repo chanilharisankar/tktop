@@ -10,7 +10,8 @@
     "scripts": {
       "check": "make check",
       "lint": "make lint",
-      "test": "make test"
+      "test": "make test",
+      "package-test": "make package-test"
     }
   }
 }

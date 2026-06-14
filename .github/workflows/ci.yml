@@ -26,10 +26,10 @@ jobs:
           python -m pip install -e ".[dev]" build
 
       - name: Lint
-        run: ruff check src tests
+        run: ruff check src tests scripts
 
       - name: Security scan
-        run: bandit -r src/tktop/ -q
+        run: bandit -r src/tktop/ scripts/ -q
 
       - name: Test
         run: pytest -q

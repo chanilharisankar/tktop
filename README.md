@@ -128,6 +128,19 @@ Local development still uses an editable install:
 pip install -e ".[dev]"
 ```
 
+Use these commands while developing:
+
+```bash
+make run           # run directly from the editable source checkout
+make check         # lint, security scan, and full tests
+make package-test  # build and install the wheel in an isolated local venv
+make package-run   # launch the locally built wheel
+```
+
+`make package-test` uses `.venvs/package-test`, which is ignored by git. It
+tests the same wheel artifact that would be uploaded to PyPI, without publishing
+anything.
+
 For maintainers, a versioned release can be prepared with:
 
 ```bash

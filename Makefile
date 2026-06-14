@@ -1,4 +1,4 @@
-.PHONY: install run test lint security audit check binary clean release
+.PHONY: install run test lint security audit check package-test package-run binary clean release
 
 install:
 	pip install -e ".[dev]"
@@ -10,16 +10,22 @@ test:
 	pytest -v
 
 lint:
-	ruff check src/ tests/
+	ruff check src/ tests/ scripts/
 
 security:
-	bandit -r src/tktop/ -q
+	bandit -r src/tktop/ scripts/ -q
 
 audit:
 	pip-audit
 
 check: lint security test
 	@echo "✅ All checks passed."
+
+package-test:
+	python3 scripts/test_package.py
+
+package-run: package-test
+	.venvs/package-test/bin/tktop
 
 binary:
 	pyinstaller --onefile --name tktop --paths src src/tktop/cli.py --add-data "src/tktop/tui/styles.tcss:tktop/tui"
