@@ -31,3 +31,7 @@ def config_show() -> None:
 def config_path() -> None:
     """Print the settings file path."""
     typer.echo(str(SETTINGS_FILE))
+
+
+if __name__ == "__main__":
+    app()
