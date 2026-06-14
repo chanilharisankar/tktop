@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from textual import work
 from textual.app import ComposeResult
@@ -11,6 +11,8 @@ from textual.widgets import DataTable, Footer, Header, Static
 from tktop.adapter.protocol import SessionAdapter
 from tktop.metrics.pricing import calculate_cost
 from tktop.metrics.types import TokenUsage
+
+UTC = timezone.utc
 
 
 class DailyStats:

@@ -1,8 +1,10 @@
 import json
 import pathlib
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from tktop.adapter.claude import ClaudeCodeAdapter
+
+UTC = timezone.utc
 
 
 def _make_session_file(sessions_dir: pathlib.Path, pid: int, session_id: str, cwd: str) -> None:
