@@ -45,6 +45,10 @@ def _write_settings(settings_path, *, adapter="auto", claude_dir, codex_dir, pro
     )
 
 
+def _check(report, name):
+    return next(check for check in report.checks if check.name == name)
+
+
 def test_build_info_includes_safe_config_summary(tmp_path):
     claude_dir = tmp_path / "claude"
     codex_dir = tmp_path / "codex"
@@ -65,6 +69,18 @@ def test_build_info_includes_safe_config_summary(tmp_path):
     assert "sk-secret" not in repr(info)
 
 
+def test_doctor_report_has_errors_only_for_error_status():
+    from tktop.diagnostics import DiagnosticCheck, DoctorReport
+
+    assert not DoctorReport(
+        [
+            DiagnosticCheck("Config", "ok", "created"),
+            DiagnosticCheck("Codex data", "warn", "not found"),
+        ]
+    ).has_errors
+    assert DoctorReport([DiagnosticCheck("Adapter", "error", "failed")]).has_errors
+
+
 @pytest.mark.asyncio
 async def test_doctor_warns_for_missing_auto_adapter_dirs(tmp_path, monkeypatch):
     _clear_tktop_env(monkeypatch)
@@ -80,6 +96,45 @@ async def test_doctor_warns_for_missing_auto_adapter_dirs(tmp_path, monkeypatch)
     assert ("Claude data", "warn") in statuses
     assert ("Codex data", "warn") in statuses
     assert ("Adapter", "ok") in statuses
+
+
+@pytest.mark.asyncio
+async def test_doctor_errors_for_data_root_that_is_file(tmp_path, monkeypatch):
+    _clear_tktop_env(monkeypatch)
+    settings_path = tmp_path / "settings.json"
+    claude_dir = tmp_path / ".claude"
+    codex_dir = tmp_path / ".codex"
+    codex_dir.write_text("not a directory")
+    _write_settings(settings_path, claude_dir=claude_dir, codex_dir=codex_dir)
+
+    report = await run_doctor(settings_path=settings_path)
+
+    assert report.has_errors
+    codex_check = _check(report, "Codex data")
+    assert codex_check.status == "error"
+    assert "not a directory" in codex_check.message
+
+
+@pytest.mark.asyncio
+async def test_doctor_errors_for_missing_explicit_claude_dir(tmp_path, monkeypatch):
+    _clear_tktop_env(monkeypatch)
+    settings_path = tmp_path / "settings.json"
+    _write_settings(
+        settings_path,
+        adapter="claude",
+        claude_dir=tmp_path / "missing-claude",
+        codex_dir=tmp_path / "missing-codex",
+    )
+
+    report = await run_doctor(settings_path=settings_path)
+
+    assert report.has_errors
+    assert any(
+        check.name == "Adapter"
+        and check.status == "error"
+        and "claude adapter data dir missing" in check.message
+        for check in report.checks
+    )
 
 
 @pytest.mark.asyncio
@@ -100,6 +155,28 @@ async def test_doctor_errors_for_missing_explicit_codex_dir(tmp_path, monkeypatc
         check.name == "Adapter"
         and check.status == "error"
         and "codex adapter data dir missing" in check.message
+        for check in report.checks
+    )
+
+
+@pytest.mark.asyncio
+async def test_doctor_errors_for_unknown_adapter(tmp_path, monkeypatch):
+    _clear_tktop_env(monkeypatch)
+    settings_path = tmp_path / "settings.json"
+    _write_settings(
+        settings_path,
+        adapter="unknown",
+        claude_dir=tmp_path / ".claude",
+        codex_dir=tmp_path / ".codex",
+    )
+
+    report = await run_doctor(settings_path=settings_path)
+
+    assert report.has_errors
+    assert any(
+        check.name == "Adapter"
+        and check.status == "error"
+        and "unknown session adapter" in check.message
         for check in report.checks
     )
 
@@ -146,6 +223,35 @@ async def test_doctor_discovers_codex_sessions(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_doctor_reports_adapter_discovery_failure(tmp_path, monkeypatch):
+    class FailingAdapter:
+        name = "failing"
+
+        async def discover(self):
+            raise OSError("cannot read sessions")
+
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text("{}")
+    monkeypatch.setattr(
+        "tktop.diagnostics.load_config",
+        lambda settings_path=None: Config(
+            session_adapter="auto",
+            claude_dir="/Users/example/.claude",
+            codex_dir="/Users/example/.codex",
+            llm_provider="ollama",
+        ),
+    )
+    monkeypatch.setattr("tktop.diagnostics.create_adapter", lambda cfg: FailingAdapter())
+
+    report = await run_doctor(settings_path=settings_path)
+
+    assert report.has_errors
+    adapter_check = _check(report, "Adapter")
+    assert adapter_check.status == "error"
+    assert "discovery failed: cannot read sessions" in adapter_check.message
+
+
+@pytest.mark.asyncio
 async def test_doctor_warns_for_missing_selected_openai_key(tmp_path, monkeypatch):
     _clear_tktop_env(monkeypatch)
     settings_path = tmp_path / "settings.json"
@@ -168,6 +274,53 @@ async def test_doctor_warns_for_missing_selected_openai_key(tmp_path, monkeypatc
         and "openai API key missing" in check.message
         for check in report.checks
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("provider", "provider_settings", "expected_status", "expected_message"),
+    [
+        ("ollama", {"host": ""}, "warn", "ollama host is not configured"),
+        ("anthropic", {"api_key": "sk-ant-test"}, "ok", "anthropic API key configured"),
+        ("vertex", {"project": "project-1", "region": "us-east5"}, "ok", "project-1/us-east5"),
+        (
+            "openai",
+            {"base_url": "https://api.openai.example/v1", "api_key": "sk-test"},
+            "ok",
+            "https://api.openai.example/v1",
+        ),
+    ],
+)
+async def test_doctor_reports_selected_provider_status(
+    tmp_path,
+    monkeypatch,
+    provider,
+    provider_settings,
+    expected_status,
+    expected_message,
+):
+    _clear_tktop_env(monkeypatch)
+    settings_path = tmp_path / "settings.json"
+    codex_dir = tmp_path / ".codex"
+    (codex_dir / "sessions").mkdir(parents=True)
+    settings = {
+        "session_adapter": "codex",
+        "default_provider": provider,
+        "agents": {
+            "claude": {"dir": str(tmp_path / ".claude")},
+            "codex": {"dir": str(codex_dir)},
+        },
+        "providers": {
+            provider: provider_settings,
+        },
+    }
+    settings_path.write_text(json.dumps(settings))
+
+    report = await run_doctor(settings_path=settings_path)
+
+    provider_check = _check(report, "LLM provider")
+    assert provider_check.status == expected_status
+    assert expected_message in provider_check.message
 
 
 @pytest.mark.asyncio
