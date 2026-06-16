@@ -2,7 +2,7 @@
 
 **Tool:** tktop — interactive CLI token monitor for coding agents
 **Audience:** Personal use first, open-source later
-**Date:** 2026-06-08 (last updated: 2026-06-13)
+**Date:** 2026-06-08 (last updated: 2026-06-16)
 
 ---
 
@@ -21,7 +21,7 @@ tktop solves this by reading agent session data directly from local files, prese
 | Language | Python 3.10+ | Agentic LLM ecosystem is Python-first (Anthropic SDK, LangChain, etc.). Textual provides excellent TUI. Future server/agentic features benefit from Python. |
 | TUI framework | Textual | Full-screen interactive apps, CSS-based styling, async-native, built-in widgets (DataTable, TabbedContent, Sparkline), mouse support. btop-level UI quality. |
 | Terminal formatting | Rich | Beautiful tables, progress bars, colors. Textual is built on Rich. |
-| CLI entry point | Typer | Argument parsing, auto-generated help, subcommand support (`tktop config show`). |
+| CLI entry point | Typer | Argument parsing, auto-generated help/version aliases, diagnostics, subcommand support (`tktop config show`). |
 | Async HTTP | httpx | Non-blocking LLM API calls. TUI stays responsive during analysis. |
 | File watching | watchfiles | Rust-backed, reliable, asyncio-compatible. Tails JSONL transcripts for live updates. |
 | Config | python-dotenv + JSON settings file | Standard .env file loading, layered with `~/.tktop/settings.json`. |
@@ -149,7 +149,7 @@ tktop (single process)
 │
 ├── CLI Layer (typer)
 │   ├── Entry point, arg parsing, launches TUI
-│   └── Subcommands: config show, config path
+│   └── Subcommands: info, doctor, config show, config path
 │
 ├── TUI Layer (textual)
 │   ├── OverviewScreen        — live session cards with summary stats
@@ -702,8 +702,13 @@ When Vertex AI env vars from Claude Code are present:
 - `CLOUD_ML_REGION` → sets `vertex_region` (unless "global")
 - `CLAUDE_CODE_USE_VERTEX=1` → switches `llm_provider` to "vertex" (if currently "ollama")
 
-### 11.5 CLI Config Commands
+### 11.5 CLI Commands
 
+- `tktop` — launches the interactive TUI
+- `tktop -h` / `tktop --help` — prints CLI help
+- `tktop -v` / `tktop -V` / `tktop --version` — prints the installed version
+- `tktop info` — prints a safe environment/config summary for support and bug reports
+- `tktop doctor` — validates local setup and reports settings, adapter, data root, session discovery, and selected LLM provider status
 - `tktop config show` — prints resolved config as JSON (API keys masked with `****` prefix)
 - `tktop config path` — prints settings file path
 

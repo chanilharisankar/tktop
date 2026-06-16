@@ -28,7 +28,15 @@ pip install -U tktop
 
 ```bash
 tktop              # launch interactive session list
+tktop -h           # show help
+tktop -v           # show version
+tktop info         # print environment summary for bug reports
+tktop doctor       # diagnose local setup
 ```
+
+`tktop doctor` checks the settings file, Claude/Codex data directories, adapter
+discovery, and selected LLM provider configuration without contacting external
+LLM APIs.
 
 ### Keybindings
 
