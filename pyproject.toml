@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tktop"
-version = "0.1.0"
+version = "1.0.0"
 description = "Token monitor for coding agents — like htop for AI spend"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 authors = [{ name = "Harisan Sankar" }]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
