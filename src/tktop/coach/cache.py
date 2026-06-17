@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 
 from tktop.coach.types import CoachCacheEntry, CoachReport
+from tktop.llm.usage import LLMUsage
 from tktop.metrics.types import SessionMetrics
 
 
@@ -58,9 +59,13 @@ def with_enhanced_markdown(
     entry: CoachCacheEntry,
     enhanced_markdown: str,
     provider_label: str,
+    model: str,
+    usage: LLMUsage | None = None,
 ) -> CoachCacheEntry:
     return dataclasses.replace(
         entry,
         enhanced_markdown=enhanced_markdown,
         enhanced_provider_label=provider_label,
+        enhanced_model=model,
+        enhanced_usage=usage,
     )

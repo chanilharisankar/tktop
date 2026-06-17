@@ -18,7 +18,13 @@ from tktop.coach.types import CoachCacheEntry
 from tktop.config import Config
 from tktop.llm.factory import create_provider
 from tktop.llm.labels import provider_label
+from tktop.llm.usage import estimate_request_usage
 from tktop.metrics.types import SessionMetrics
+from tktop.tui.llm_meter import (
+    format_actual_call_meter,
+    format_cached_call_meter,
+    format_expected_call_meter,
+)
 
 
 class CoachScreen(Screen):
@@ -92,7 +98,7 @@ class CoachScreen(Screen):
         self.query_one("#coach-local", Markdown).update(entry.local_markdown)
         enhanced_widget = self.query_one("#coach-enhanced", Markdown)
         if entry.enhanced_markdown:
-            enhanced_widget.update(entry.enhanced_markdown)
+            enhanced_widget.update(self._cached_enhanced_markdown(entry))
             return
 
         enhanced_widget.update(
@@ -109,6 +115,32 @@ class CoachScreen(Screen):
                 ]
             )
         )
+
+    def _model_name(self) -> str:
+        match self.config.llm_provider:
+            case "ollama":
+                return self.config.ollama_model
+            case "anthropic":
+                return self.config.anthropic_model
+            case "vertex":
+                return self.config.vertex_model
+            case "openai":
+                return self.config.openai_model
+            case _:
+                return ""
+
+    def _is_local_model(self) -> bool:
+        return self.config.llm_provider == "ollama"
+
+    def _cached_enhanced_markdown(self, entry: CoachCacheEntry) -> str:
+        label = entry.enhanced_provider_label or provider_label(self.config)
+        meter = format_cached_call_meter(
+            provider_label=label,
+            model=entry.enhanced_model or self._model_name(),
+            usage=entry.enhanced_usage,
+            local_model=label.startswith("ollama/"),
+        )
+        return "\n".join([entry.enhanced_markdown or "", "", f"> {meter}"])
 
     @work(exclusive=True)
     async def _enhance(self) -> None:
@@ -136,6 +168,25 @@ class CoachScreen(Screen):
             return
 
         prompt = build_coach_enhancement_prompt(self.metrics, entry.report)
+        estimated_usage = estimate_request_usage(prompt)
+        await enhanced_widget.update(
+            "\n".join(
+                [
+                    "## Enhanced Coaching",
+                    "",
+                    f"Model: `{label}`",
+                    "",
+                    format_expected_call_meter(
+                        provider_label=label,
+                        model=self._model_name(),
+                        usage=estimated_usage,
+                        local_model=self._is_local_model(),
+                    ),
+                    "",
+                    "*Enhancing suggestions...*",
+                ]
+            )
+        )
         try:
             result = await provider.analyze(prompt)
         except Exception as exc:
@@ -151,10 +202,19 @@ class CoachScreen(Screen):
                 "",
                 f"Model: `{label}`",
                 "",
-                result,
+                format_actual_call_meter(
+                    provider_label=label,
+                    model=self._model_name(),
+                    usage=result.usage,
+                    local_model=self._is_local_model(),
+                ),
+                "",
+                result.text,
             ]
         )
-        updated_entry = with_enhanced_markdown(entry, enhanced_markdown, label)
+        updated_entry = with_enhanced_markdown(
+            entry, enhanced_markdown, label, self._model_name(), result.usage
+        )
         self._cache()[self.metrics.session.id] = updated_entry
         self.entry = updated_entry
         await enhanced_widget.update(enhanced_markdown)

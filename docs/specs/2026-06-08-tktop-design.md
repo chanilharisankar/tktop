@@ -179,6 +179,7 @@ tktop (single process)
 │
 └── LLM Provider Layer
     ├── LLMProvider           — protocol (interface) for all providers
+    ├── LLMResult/LLMUsage    — response text plus provider usage metadata
     ├── OllamaProvider        — local Ollama instance (uses chat API with system prompt)
     ├── AnthropicProvider     — direct Anthropic API
     ├── VertexProvider        — Anthropic models on Vertex AI
@@ -357,6 +358,9 @@ Triggered by pressing `a` from the Dashboard. Runs async — dashboard remains u
 
 - **Summary line** at top showing turn count, billable tokens, cost, tool count, alert count
 - **Provider label** showing current LLM provider and model (e.g. `ollama/llama3`)
+- **LLM Call Cost meter** showing estimated prompt tokens before the call and
+  actual input/output tokens plus estimated cost after completion when the
+  provider returns usage metadata
 - **Analysis results** rendered as Markdown in a scrollable view
 - Press `p` to switch LLM provider mid-session (opens modal picker, re-runs analysis)
 - Error handling for unreachable providers and failed analysis calls
@@ -377,6 +381,8 @@ default, so it renders immediately without API keys or network calls.
   `strong_reasoning` model tiers
 - **Suggested Next Prompt** and a reusable prompt pattern
 - **Provider/model label** showing which LLM would enhance the report
+- **LLM Call Cost meter** for Enhanced Coach calls, including cached result
+  messaging when no new LLM tokens are spent
 - Press `L` to generate optional LLM-enhanced coaching with the configured provider/model
 - Press `r` to regenerate the local report and clear any cached enhanced result
 
@@ -887,7 +893,7 @@ tktop/
 │       │   │   ├── history.py         # 7-day daily usage breakdown
 │       │   │   ├── help.py            # keybindings + panel documentation
 │       │   │   └── provider_picker.py # modal LLM provider selector
-│       │   └── widgets/
+│       │   ├── widgets/
 │       │       ├── __init__.py
 │       │       ├── token_bars.py      # horizontal token bars with model name
 │       │       ├── token_graph.py     # sparkline wrapper (optional)
@@ -895,11 +901,13 @@ tktop/
 │       │       ├── tool_table.py      # tool stats with mini bars
 │       │       ├── alert_panel.py     # drift/loop alerts
 │       │       └── session_card.py    # overview session card
+│       │   └── llm_meter.py           # expected/actual LLM call usage text
 │       └── llm/
 │           ├── __init__.py
 │           ├── protocol.py            # LLMProvider protocol
 │           ├── labels.py              # provider/model display labels
 │           ├── prompt.py              # system prompt + analysis prompt builder
+│           ├── usage.py               # LLMResult/LLMUsage + prompt/cost estimates
 │           ├── ollama.py              # Ollama provider (chat API)
 │           ├── anthropic_provider.py  # Anthropic direct API provider
 │           ├── vertex.py              # Vertex AI provider (gcloud auth)
@@ -979,7 +987,7 @@ Runs three checks in order, blocking commit on failure:
 
 ## 16. Test Coverage
 
-151 tests across 21 test files. All tests run in about 1 second locally.
+157 tests across 22 test files. All tests run in about 1 second locally.
 
 | Test File | Tests | Coverage |
 |---|---|---|
@@ -995,6 +1003,7 @@ Runs three checks in order, blocking commit on failure:
 | `test_config_settings.py` | 7 | Settings file creation, loading, permissions, defaults, apply |
 | `test_diagnostics.py` | 15 | Doctor/info diagnostics, adapter/provider statuses, setup edge cases |
 | `test_llm_ollama.py` | 3 | Analyze (mocked), error handling, health check |
+| `test_llm_usage.py` | 6 | Prompt estimates, usage cost, actual/expected/cached meter text |
 | `test_llm_factory.py` | 5 | Factory for all 4 providers + unknown |
 | `test_prompt.py` | 6 | Prompt building, section presence, system prompt content, user prompts |
 | `test_history.py` | 2 | Daily aggregation, empty sessions |

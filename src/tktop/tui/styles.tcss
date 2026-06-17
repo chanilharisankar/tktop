@@ -80,6 +80,12 @@ DataTable > .datatable--cursor {
     padding: 0 1;
 }
 
+#analysis-call-meter {
+    height: 1;
+    color: $warning;
+    padding: 0 1;
+}
+
 #analysis-scroll {
     border: round $primary;
     padding: 0 1;

@@ -1,6 +1,7 @@
 import httpx
 
 from tktop.llm.prompt import SYSTEM_PROMPT
+from tktop.llm.usage import LLMResult, LLMUsage
 
 
 class OllamaProvider:
@@ -10,7 +11,7 @@ class OllamaProvider:
         self.host = host
         self.model = model
 
-    async def analyze(self, prompt: str) -> str:
+    async def analyze(self, prompt: str) -> LLMResult:
         async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(
                 f"{self.host}/api/chat",
@@ -26,7 +27,13 @@ class OllamaProvider:
             response.raise_for_status()
             data = response.json()
             msg = data.get("message", {})
-            return msg.get("content", data.get("error", "No response"))
+            return LLMResult(
+                text=msg.get("content", data.get("error", "No response")),
+                usage=LLMUsage(
+                    input_tokens=data.get("prompt_eval_count"),
+                    output_tokens=data.get("eval_count"),
+                ),
+            )
 
     async def health_check(self) -> bool:
         try:

@@ -3,6 +3,7 @@ import subprocess  # nosec B404 — needed for gcloud auth
 import httpx
 
 from tktop.llm.prompt import SYSTEM_PROMPT
+from tktop.llm.usage import LLMResult, LLMUsage
 
 
 class VertexProvider:
@@ -13,7 +14,7 @@ class VertexProvider:
         self.region = region
         self.model = model
 
-    async def analyze(self, prompt: str) -> str:
+    async def analyze(self, prompt: str) -> LLMResult:
         token = self._get_access_token()
 
         url = (
@@ -38,7 +39,16 @@ class VertexProvider:
             )
             response.raise_for_status()
             data = response.json()
-            return data["content"][0]["text"]
+            usage = data.get("usage", {})
+            return LLMResult(
+                text=data["content"][0]["text"],
+                usage=LLMUsage(
+                    input_tokens=usage.get("input_tokens"),
+                    output_tokens=usage.get("output_tokens"),
+                    cache_creation_tokens=usage.get("cache_creation_input_tokens", 0),
+                    cache_read_tokens=usage.get("cache_read_input_tokens", 0),
+                ),
+            )
 
     async def health_check(self) -> bool:
         try:

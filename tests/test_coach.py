@@ -10,6 +10,7 @@ from tktop.coach.prompt import build_coach_enhancement_prompt
 from tktop.coach.rules import build_coach_report, render_coach_markdown
 from tktop.config import Config
 from tktop.llm.labels import model_name, provider_label
+from tktop.llm.usage import LLMUsage
 from tktop.metrics.types import (
     Alert,
     SessionInfo,
@@ -312,11 +313,20 @@ def test_coach_cache_stores_enhanced_markdown_without_rebuilding_local_report():
     report = build_coach_report(metrics)
     entry = build_cache_entry(metrics, report, render_coach_markdown(report))
 
-    enhanced = with_enhanced_markdown(entry, "## Enhanced Coaching\n\nAdvice", "openai/gpt-4o")
+    enhanced = with_enhanced_markdown(
+        entry,
+        "## Enhanced Coaching\n\nAdvice",
+        "openai/gpt-4o",
+        "gpt-4o",
+        LLMUsage(input_tokens=100, output_tokens=25),
+    )
 
     assert enhanced.report is entry.report
     assert enhanced.local_markdown == entry.local_markdown
     assert enhanced.enhanced_provider_label == "openai/gpt-4o"
+    assert enhanced.enhanced_model == "gpt-4o"
+    assert enhanced.enhanced_usage is not None
+    assert enhanced.enhanced_usage.total_tokens == 125
     assert "Advice" in enhanced.enhanced_markdown
 
 

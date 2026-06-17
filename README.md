@@ -73,6 +73,12 @@ suggestions are cached in memory for the running TUI session, so leaving and
 reopening Coach shows the same result until the session changes, the app closes,
 or you regenerate it.
 
+Analyze and Enhanced Coach show an **LLM Call Cost** meter for the analysis call
+itself. Before the call completes, tktop shows the estimated prompt input tokens;
+after completion, it updates with actual input/output tokens and estimated cost
+when the provider returns usage data. Cached Enhanced Coach results are marked
+as cached so it is clear no new tokens were spent.
+
 Coach's **Model Fit** section is vendor-neutral. It recommends a tier such as
 `cheap_fast`, `balanced`, or `strong_reasoning` based on prompt scope, task
 complexity, validation signals, drift, and tool usage. Enhanced Coach can refine

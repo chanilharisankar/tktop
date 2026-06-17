@@ -11,7 +11,12 @@ from tktop.config import Config
 from tktop.llm.factory import create_provider
 from tktop.llm.labels import model_name, provider_label
 from tktop.llm.prompt import build_analysis_prompt
+from tktop.llm.usage import estimate_request_usage
 from tktop.metrics.types import SessionMetrics
+from tktop.tui.llm_meter import (
+    format_actual_call_meter,
+    format_expected_call_meter,
+)
 
 
 class AnalysisScreen(Screen):
@@ -43,6 +48,7 @@ class AnalysisScreen(Screen):
             classes="panel-title",
             id="reco-title",
         )
+        yield Static("", id="analysis-call-meter")
         yield VerticalScroll(
             Markdown("*Analyzing...*", id="analysis-result"),
             id="analysis-scroll",
@@ -62,10 +68,15 @@ class AnalysisScreen(Screen):
     def _model_name(self) -> str:
         return model_name(self.config)
 
+    def _is_local_model(self) -> bool:
+        return self.config.llm_provider == "ollama"
+
     @work
     async def run_analysis(self) -> None:
         result_widget = self.query_one("#analysis-result", Markdown)
+        meter = self.query_one("#analysis-call-meter", Static)
         await result_widget.update("*Analyzing...*")
+        meter.update("")
 
         provider = create_provider(self.config)
 
@@ -84,9 +95,28 @@ class AnalysisScreen(Screen):
             return
 
         prompt = build_analysis_prompt(self.metrics)
+        estimated_usage = estimate_request_usage(prompt)
+        label = provider_label(self.config)
+        model = self._model_name()
+        meter.update(
+            format_expected_call_meter(
+                provider_label=label,
+                model=model,
+                usage=estimated_usage,
+                local_model=self._is_local_model(),
+            )
+        )
         try:
             result = await provider.analyze(prompt)
-            await result_widget.update(result)
+            meter.update(
+                format_actual_call_meter(
+                    provider_label=label,
+                    model=model,
+                    usage=result.usage,
+                    local_model=self._is_local_model(),
+                )
+            )
+            await result_widget.update(result.text)
         except Exception as e:
             await result_widget.update(f"**Error:** {e}")
 

@@ -14,14 +14,19 @@ async def test_ollama_analyze():
     mock_response.json.return_value = {
         "message": {
             "content": "Reduce cache creation by using smaller context windows."
-        }
+        },
+        "prompt_eval_count": 42,
+        "eval_count": 17,
     }
     mock_response.raise_for_status = MagicMock()
 
     with patch("httpx.AsyncClient.post", return_value=mock_response) as mock_post:
         result = await provider.analyze("test prompt")
 
-        assert result == "Reduce cache creation by using smaller context windows."
+        assert result.text == "Reduce cache creation by using smaller context windows."
+        assert result.usage is not None
+        assert result.usage.input_tokens == 42
+        assert result.usage.output_tokens == 17
         mock_post.assert_called_once()
         call_args = mock_post.call_args
         assert call_args[0][0] == "http://localhost:11434/api/chat"

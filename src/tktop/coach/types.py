@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from tktop.llm.usage import LLMUsage
+
 CoachSeverity = Literal["ok", "info", "warn"]
 ModelTier = Literal["cheap_fast", "balanced", "strong_reasoning"]
 ModelRecommendationConfidence = Literal["low", "medium", "high"]
@@ -46,3 +48,5 @@ class CoachCacheEntry:
     local_markdown: str
     enhanced_markdown: str | None = None
     enhanced_provider_label: str | None = None
+    enhanced_model: str | None = None
+    enhanced_usage: LLMUsage | None = None
