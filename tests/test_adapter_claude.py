@@ -76,6 +76,56 @@ async def test_parse_transcript(
     assert assistant_turns[0].usage.cache_read_tokens == 8000
 
 
+async def test_parse_transcript_dedupes_assistant_message_blocks(
+    mock_claude_dir: pathlib.Path,
+):
+    project_dir = mock_claude_dir / "projects" / "-Users-testuser-Dev-myproject"
+    project_dir.mkdir(parents=True)
+
+    usage = {
+        "input_tokens": 10,
+        "output_tokens": 20,
+        "cache_creation_input_tokens": 100,
+        "cache_read_input_tokens": 200,
+    }
+
+    def assistant_entry(content: list[dict[str, str]]) -> dict[str, object]:
+        return {
+            "type": "assistant",
+            "timestamp": "2026-06-17T12:00:00Z",
+            "message": {
+                "id": "msg_001",
+                "model": "claude-sonnet-4-6",
+                "usage": usage,
+                "content": content,
+            },
+        }
+
+    lines = [
+        assistant_entry([{"type": "thinking", "thinking": "Need to inspect files."}]),
+        assistant_entry([{"type": "tool_use", "id": "toolu_001", "name": "Read"}]),
+        assistant_entry([{"type": "text", "text": "The file needs a small adapter fix."}]),
+    ]
+    (project_dir / "test-session-001.jsonl").write_text(
+        "\n".join(json.dumps(line) for line in lines)
+    )
+
+    adapter = ClaudeCodeAdapter(str(mock_claude_dir))
+    turns = await adapter.parse_transcript("test-session-001")
+
+    assert len(turns) == 1
+    turn = turns[0]
+    assert turn.number == 1
+    assert turn.usage.input_tokens == 10
+    assert turn.usage.output_tokens == 20
+    assert turn.usage.cache_creation_tokens == 100
+    assert turn.usage.cache_read_tokens == 200
+    assert len(turn.tool_calls) == 1
+    assert turn.tool_calls[0].name == "Read"
+    assert turn.tool_calls[0].id == "toolu_001"
+    assert "small adapter fix" in turn.content_preview
+
+
 async def test_parse_transcript_content_preview(
     mock_claude_dir_with_transcript: pathlib.Path,
 ):

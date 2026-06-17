@@ -67,6 +67,8 @@ class ClaudeCodeAdapter:
 
         turns: list[Turn] = []
         turn_number = 0
+        assistant_turns_by_message_id: dict[str, Turn] = {}
+        text_parts_by_message_id: dict[str, list[str]] = {}
 
         for line in transcript_path.read_text().splitlines():
             line = line.strip()
@@ -86,7 +88,6 @@ class ClaudeCodeAdapter:
             if not isinstance(msg, dict):
                 continue
 
-            turn_number += 1
             usage_data = msg.get("usage") or {}
             content_blocks = msg.get("content", [])
             if isinstance(content_blocks, str):
@@ -105,6 +106,17 @@ class ClaudeCodeAdapter:
                 elif block.get("type") == "text":
                     text_parts.append(block.get("text", ""))
 
+            message_id = msg.get("id")
+            if entry_type == "assistant" and isinstance(message_id, str):
+                existing_turn = assistant_turns_by_message_id.get(message_id)
+                if existing_turn is not None:
+                    existing_turn.tool_calls.extend(tool_calls)
+                    existing_text_parts = text_parts_by_message_id[message_id]
+                    existing_text_parts.extend(text_parts)
+                    existing_turn.content_preview = " ".join(existing_text_parts)[:200]
+                    continue
+
+            turn_number += 1
             preview = " ".join(text_parts)[:200]
             timestamp_str = entry.get("timestamp", "")
             try:
@@ -115,7 +127,7 @@ class ClaudeCodeAdapter:
                 timestamp = datetime.now(tz=UTC)
 
             turns.append(
-                Turn(
+                turn := Turn(
                     number=turn_number,
                     timestamp=timestamp,
                     role=entry_type,
@@ -134,6 +146,9 @@ class ClaudeCodeAdapter:
                     content_preview=preview,
                 )
             )
+            if entry_type == "assistant" and isinstance(message_id, str):
+                assistant_turns_by_message_id[message_id] = turn
+                text_parts_by_message_id[message_id] = text_parts
 
         return turns
 
