@@ -43,12 +43,25 @@ HELP_TEXT = """\
    • Cache miss streak — 5+ turns with no cache reuse
    • Cost spike        — one turn costing 2x the average
 
+ COACH
+   Local guidance for improving how you use coding agents.
+   Coach uses transcript signals without calling an LLM by default:
+   • Prompt scope, validation, and acceptance criteria
+   • Exploration before edits
+   • Repeated tool usage
+   • Long sessions without checkpoints
+
+   Press L inside Coach to enhance suggestions with the configured LLM.
+   Enhanced suggestions are cached in memory until the session changes,
+   the app closes, or you regenerate them.
+
  KEYBINDINGS
  ───────────
 
  Overview:    ↑/↓ navigate  enter select  h history  r refresh  q quit
- Dashboard:   a analyze  enter turn detail  r refresh  escape back  q quit
+ Dashboard:   a analyze  c coach  enter turn detail  r refresh  escape back  q quit
  Analysis:    p pick provider  escape back  q quit
+ Coach:       L enhance suggestions  r regenerate  escape back  q quit
  History:     r refresh  escape back  q quit
  All:         ? this help  q quit
 

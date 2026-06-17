@@ -9,6 +9,7 @@ from textual.widgets import Footer, Header, Markdown, Static
 
 from tktop.config import Config
 from tktop.llm.factory import create_provider
+from tktop.llm.labels import model_name, provider_label
 from tktop.llm.prompt import build_analysis_prompt
 from tktop.metrics.types import SessionMetrics
 
@@ -37,9 +38,8 @@ class AnalysisScreen(Screen):
 
         yield Header()
         yield Static(f" SESSION: {summary}", id="analysis-summary")
-        provider_label = f"{self.config.llm_provider}/{self._model_name()}"
         yield Static(
-            f" OPTIMIZATION RECOMMENDATIONS  (using {provider_label})",
+            f" OPTIMIZATION RECOMMENDATIONS  (using {provider_label(self.config)})",
             classes="panel-title",
             id="reco-title",
         )
@@ -56,21 +56,11 @@ class AnalysisScreen(Screen):
     def _update_subtitle(self) -> None:
         self.sub_title = (
             f"Analysis — {self.metrics.session.project_path} — "
-            f"powered by {self.config.llm_provider}/{self._model_name()}"
+            f"powered by {provider_label(self.config)}"
         )
 
     def _model_name(self) -> str:
-        match self.config.llm_provider:
-            case "ollama":
-                return self.config.ollama_model
-            case "anthropic":
-                return self.config.anthropic_model
-            case "vertex":
-                return self.config.vertex_model
-            case "openai":
-                return self.config.openai_model
-            case _:
-                return "unknown"
+        return model_name(self.config)
 
     @work
     async def run_analysis(self) -> None:
@@ -113,9 +103,8 @@ class AnalysisScreen(Screen):
             return
         self.config.llm_provider = provider
         self._update_subtitle()
-        provider_label = f"{self.config.llm_provider}/{self._model_name()}"
         self.query_one("#reco-title", Static).update(
-            f" OPTIMIZATION RECOMMENDATIONS  (using {provider_label})"
+            f" OPTIMIZATION RECOMMENDATIONS  (using {provider_label(self.config)})"
         )
         self.run_analysis()
 

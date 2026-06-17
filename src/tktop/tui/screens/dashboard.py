@@ -22,6 +22,7 @@ class DashboardScreen(Screen):
         Binding("escape", "go_back", "Back"),
         Binding("q", "quit", "Quit"),
         Binding("a", "analyze", "Analyze"),
+        Binding("c", "coach", "Coach"),
         Binding("r", "refresh", "Refresh"),
     ]
 
@@ -184,6 +185,12 @@ class DashboardScreen(Screen):
             from tktop.tui.screens.analysis import AnalysisScreen
 
             self.app.push_screen(AnalysisScreen(self.metrics, self.config))
+
+    def action_coach(self) -> None:
+        if self.metrics:
+            from tktop.tui.screens.coach import CoachScreen
+
+            self.app.push_screen(CoachScreen(self.metrics, self.config))
 
     def action_refresh(self) -> None:
         self.load_data()

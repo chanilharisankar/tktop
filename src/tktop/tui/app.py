@@ -3,6 +3,7 @@ from textual.app import App
 from textual.binding import Binding
 
 from tktop.adapter.factory import create_adapter
+from tktop.coach.types import CoachCacheEntry
 from tktop.config import Config, load_config
 from tktop.tui.screens.overview import OverviewScreen, SessionSelected
 
@@ -22,6 +23,7 @@ class TktopApp(App):
         super().__init__(**kwargs)
         self.config = config or load_config()
         self.adapter = create_adapter(self.config)
+        self.coach_cache: dict[str, CoachCacheEntry] = {}
 
     def on_mount(self) -> None:
         self.push_screen(OverviewScreen(self.adapter))
