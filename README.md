@@ -185,6 +185,18 @@ For maintainers, a versioned release can be prepared with:
 make release VERSION=0.1.1
 ```
 
+After pushing a release tag, verify GitHub Actions and PyPI deployment with:
+
+```bash
+python scripts/check_deployment.py 1.1.3
+python scripts/check_deployment.py 1.1.3 --wait --timeout 600
+make deployment-status VERSION=1.1.3
+```
+
+The deployment checker confirms that the GitHub tag exists, the tag-triggered
+`Release` workflow succeeded, and the target version is visible on PyPI. If no
+version is passed, it checks the version in `pyproject.toml`.
+
 ### Devbox
 
 If you have the Devbox CLI installed, you can bootstrap the repo with:

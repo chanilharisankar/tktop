@@ -1,4 +1,4 @@
-.PHONY: install run test lint security audit check package-test package-run binary clean release
+.PHONY: install run test lint security audit check package-test package-run binary clean release deployment-status
 
 install:
 	pip install -e ".[dev]"
@@ -38,3 +38,6 @@ clean:
 release:
 	@test -n "$(VERSION)" || (echo "VERSION is required, for example: make release VERSION=0.1.1"; exit 1)
 	python3 scripts/release.py "$(VERSION)"
+
+deployment-status:
+	python3 scripts/check_deployment.py $(VERSION)

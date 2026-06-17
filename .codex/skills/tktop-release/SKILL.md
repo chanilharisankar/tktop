@@ -35,7 +35,10 @@ Use this skill for tktop release preparation and publication.
    - commit the release bump
    - create `v<version>` tag
    - push `main` and the tag
-   - verify the GitHub Release workflow and PyPI version
+   - verify the GitHub Release workflow and PyPI version with:
+     ```bash
+     python scripts/check_deployment.py <version> --wait --timeout 600
+     ```
 
 ## Guardrails
 
@@ -46,9 +49,9 @@ Use this skill for tktop release preparation and publication.
   flow, but inspect it first.
 - If pushing a tag, state clearly that it can trigger GitHub Actions and PyPI
   publication.
-- Verify PyPI after publish with:
+- Verify deployment after publish with:
   ```bash
-  python -c 'import json, urllib.request; print(json.load(urllib.request.urlopen("https://pypi.org/pypi/tktop/json"))["info"]["version"])'
+  python scripts/check_deployment.py <version>
   ```
 
 ## Bundled Scripts
@@ -57,3 +60,5 @@ Use this skill for tktop release preparation and publication.
   and suggested next versions.
 - `scripts/validate_target.py`: validate a user-provided target version against
   the current repo and local tags.
+- `scripts/check_deployment.py`: verify the pushed tag, GitHub Release workflow,
+  and PyPI publication status for a version.
