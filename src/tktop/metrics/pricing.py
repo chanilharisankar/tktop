@@ -21,6 +21,10 @@ CLAUDE_OPUS_4_LEGACY = ModelPricing(15.00, 75.00, 18.75, 1.50)
 CLAUDE_SONNET = ModelPricing(3.00, 15.00, 3.75, 0.30)
 CLAUDE_HAIKU_45 = ModelPricing(1.00, 5.00, 1.25, 0.10)
 CLAUDE_HAIKU_35 = ModelPricing(0.80, 4.00, 1.00, 0.08)
+OPENAI_GPT_55 = ModelPricing(5.00, 30.00, 0.50, 0.50)
+OPENAI_GPT_54 = ModelPricing(2.50, 15.00, 0.25, 0.25)
+OPENAI_GPT_54_MINI = ModelPricing(0.75, 4.50, 0.075, 0.075)
+OPENAI_GPT_53_CODEX = ModelPricing(1.75, 14.00, 0.175, 0.175)
 
 
 MODEL_PRICING: dict[str, ModelPricing] = {
@@ -39,6 +43,10 @@ MODEL_PRICING: dict[str, ModelPricing] = {
     "claude-3-5-sonnet": CLAUDE_SONNET,
     "claude-haiku-4-5": CLAUDE_HAIKU_45,
     "claude-3-5-haiku": CLAUDE_HAIKU_35,
+    "gpt-5.5": OPENAI_GPT_55,
+    "gpt-5.4": OPENAI_GPT_54,
+    "gpt-5.4-mini": OPENAI_GPT_54_MINI,
+    "gpt-5.3-codex": OPENAI_GPT_53_CODEX,
     "gpt-4o": ModelPricing(2.50, 10.00),
     "gpt-4.1": ModelPricing(2.00, 8.00, 0.50, 0.50),
 }
@@ -80,6 +88,10 @@ def _normalize_model_id(model: str) -> str:
 
     if normalized.startswith("anthropic."):
         normalized = normalized.removeprefix("anthropic.")
+    if normalized.startswith("openai."):
+        normalized = normalized.removeprefix("openai.")
+    if normalized.startswith("openai/"):
+        normalized = normalized.removeprefix("openai/")
 
     if normalized.startswith("claude-") and "@" in normalized:
         base, _, suffix = normalized.partition("@")

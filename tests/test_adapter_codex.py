@@ -6,6 +6,7 @@ import pytest
 from tktop.adapter.codex import CodexAdapter
 from tktop.adapter.factory import create_adapter
 from tktop.config import Config
+from tktop.metrics.aggregator import aggregate
 
 
 @pytest.fixture
@@ -213,6 +214,171 @@ async def test_parse_transcript(mock_codex_dir: pathlib.Path):
     assert assistant_turns[1].usage.output_tokens == 60
 
 
+async def test_codex_supported_model_aggregates_nonzero_cost(
+    mock_codex_dir: pathlib.Path,
+):
+    adapter = CodexAdapter(str(mock_codex_dir))
+    session = (await adapter.discover())[0]
+    turns = await adapter.parse_transcript("codex-session-001")
+
+    metrics = aggregate(session, turns)
+
+    assert metrics.total_usage.input_tokens == 1200
+    assert metrics.total_usage.output_tokens == 260
+    assert metrics.total_usage.cache_read_tokens == 700
+    assert metrics.total_cost > 0
+    assert metrics.cost_per_turn[-1] == metrics.total_cost
+    assert all(turn_cost.total > 0 for turn_cost in metrics.turn_costs)
+
+
+async def test_codex_unknown_model_keeps_tokens_but_zero_cost(
+    mock_codex_dir: pathlib.Path,
+):
+    (mock_codex_dir / "config.toml").write_text('model = "gpt-unknown"\n')
+
+    adapter = CodexAdapter(str(mock_codex_dir))
+    session = (await adapter.discover())[0]
+    turns = await adapter.parse_transcript("codex-session-001")
+
+    metrics = aggregate(session, turns)
+
+    assert metrics.total_usage.total > 0
+    assert metrics.total_cost == 0.0
+    assert metrics.cost_per_turn == [0.0, 0.0]
+    assert all(turn_cost.total == 0.0 for turn_cost in metrics.turn_costs)
+
+
+async def test_parse_transcript_token_count_edge_cases(tmp_path: pathlib.Path):
+    (tmp_path / "session_index.jsonl").write_text(
+        json.dumps(
+            {
+                "id": "codex-edge-session",
+                "thread_name": "Token edge cases",
+                "updated_at": "2026-06-13T16:00:00Z",
+            }
+        )
+    )
+    (tmp_path / "config.toml").write_text('model = "gpt-5.5"\n')
+
+    transcript_dir = tmp_path / "sessions" / "2026" / "06" / "13"
+    transcript_dir.mkdir(parents=True)
+    transcript = transcript_dir / "rollout-2026-06-13T16-00-00-codex-edge-session.jsonl"
+    transcript.write_text(
+        "\n".join(
+            json.dumps(line)
+            for line in [
+                {
+                    "timestamp": "2026-06-13T15:58:00.000Z",
+                    "type": "session_meta",
+                    "payload": {
+                        "id": "codex-edge-session",
+                        "timestamp": "2026-06-13T15:58:00.000Z",
+                        "cwd": "/Users/test/project",
+                        "cli_version": "0.139.0",
+                    },
+                },
+                {
+                    "timestamp": "2026-06-13T16:00:00.000Z",
+                    "type": "event_msg",
+                    "payload": {
+                        "type": "token_count",
+                        "info": {
+                            "last_token_usage": {
+                                "input_tokens": 999,
+                                "cached_input_tokens": 999,
+                                "output_tokens": 999,
+                            }
+                        },
+                    },
+                },
+                {
+                    "timestamp": "2026-06-13T16:00:01.000Z",
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": "fix bug"}],
+                    },
+                },
+                {
+                    "timestamp": "2026-06-13T16:00:02.000Z",
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [{"type": "output_text", "text": "I will inspect it."}],
+                    },
+                },
+                {
+                    "timestamp": "2026-06-13T16:00:03.000Z",
+                    "type": "event_msg",
+                    "payload": {
+                        "type": "token_count",
+                        "info": {"last_token_usage": "malformed"},
+                    },
+                },
+                {
+                    "timestamp": "2026-06-13T16:00:04.000Z",
+                    "type": "event_msg",
+                    "payload": {
+                        "type": "token_count",
+                        "info": {
+                            "last_token_usage": {
+                                "input_tokens": 100,
+                                "output_tokens": 20,
+                            }
+                        },
+                    },
+                },
+                {
+                    "timestamp": "2026-06-13T16:00:05.000Z",
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": "continue"}],
+                    },
+                },
+                {
+                    "timestamp": "2026-06-13T16:00:06.000Z",
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [{"type": "output_text", "text": "I found it."}],
+                    },
+                },
+                {
+                    "timestamp": "2026-06-13T16:00:07.000Z",
+                    "type": "event_msg",
+                    "payload": {
+                        "type": "token_count",
+                        "info": {
+                            "last_token_usage": {
+                                "input_tokens": 50,
+                                "cached_input_tokens": 5,
+                                "output_tokens": 10,
+                            }
+                        },
+                    },
+                },
+            ]
+        )
+    )
+
+    adapter = CodexAdapter(str(tmp_path))
+    turns = await adapter.parse_transcript("codex-edge-session")
+
+    assistant_turns = [turn for turn in turns if turn.role == "assistant"]
+    assert len(assistant_turns) == 2
+    assert assistant_turns[0].usage.input_tokens == 100
+    assert assistant_turns[0].usage.output_tokens == 20
+    assert assistant_turns[0].usage.cache_read_tokens == 0
+    assert assistant_turns[1].usage.input_tokens == 50
+    assert assistant_turns[1].usage.output_tokens == 10
+    assert assistant_turns[1].usage.cache_read_tokens == 5
+
+
 async def test_parse_transcript_not_found(mock_codex_dir: pathlib.Path):
     adapter = CodexAdapter(str(mock_codex_dir))
     turns = await adapter.parse_transcript("missing-session")
@@ -234,4 +400,3 @@ def test_factory_prefers_codex_when_explicit(tmp_path: pathlib.Path):
 
     adapter = create_adapter(cfg)
     assert adapter.name == "codex"
-

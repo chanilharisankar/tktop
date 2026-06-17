@@ -579,13 +579,21 @@ Nine detection algorithms. Each runs independently over the turn list and return
 | claude-sonnet-4 / claude-sonnet-4-5 | $3.00 | $15.00 | $3.75 | $0.30 |
 | claude-haiku-4-5 | $1.00 | $5.00 | $1.25 | $0.10 |
 | claude-3-5-haiku | $0.80 | $4.00 | $1.00 | $0.08 |
+| gpt-5.5 | $5.00 | $30.00 | $0.50 | $0.50 |
+| gpt-5.4 | $2.50 | $15.00 | $0.25 | $0.25 |
+| gpt-5.4-mini | $0.75 | $4.50 | $0.075 | $0.075 |
+| gpt-5.3-codex | $1.75 | $14.00 | $0.175 | $0.175 |
 | gpt-4o | $2.50 | $10.00 | — | — |
 | gpt-4.1 | $2.00 | $8.00 | $0.50 | $0.50 |
 
 Claude model pricing accepts Claude API, Bedrock, and Vertex ID variants,
-including dated snapshot IDs where a base model price is known. Cache Write is
-the 5-minute prompt cache write rate. Unknown models display tokens but show
-`$0.00` cost.
+including dated snapshot IDs where a base model price is known. OpenAI pricing
+accepts plain model IDs plus `openai.<model>` and `openai/<model>` provider ID
+variants. For OpenAI models, both cache columns represent cached-input pricing;
+OpenAI does not expose a separate cache-write token category in Codex token
+usage. `gpt-5.3-codex-spark` is not priced because the Codex docs list it as a
+ChatGPT Pro research preview model without API access. Unknown models display
+tokens but show `$0.00` cost.
 
 ### 8.2 Cost Calculation
 

@@ -5,6 +5,7 @@ import shutil
 import pytest
 
 from tktop.adapter.claude import ClaudeCodeAdapter
+from tktop.metrics.aggregator import aggregate
 
 
 @pytest.fixture
@@ -124,6 +125,15 @@ async def test_parse_transcript_dedupes_assistant_message_blocks(
     assert turn.tool_calls[0].name == "Read"
     assert turn.tool_calls[0].id == "toolu_001"
     assert "small adapter fix" in turn.content_preview
+
+    session = (await adapter.discover())[0]
+    metrics = aggregate(session, turns)
+    assert metrics.total_usage.input_tokens == 10
+    assert metrics.total_usage.output_tokens == 20
+    assert metrics.total_usage.cache_creation_tokens == 100
+    assert metrics.total_usage.cache_read_tokens == 200
+    assert len(metrics.turn_costs) == 1
+    assert metrics.total_cost > 0
 
 
 async def test_parse_transcript_content_preview(
