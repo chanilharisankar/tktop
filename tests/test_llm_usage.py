@@ -34,7 +34,7 @@ def test_format_expected_call_meter_shows_prompt_estimate():
     )
 
     assert "expected ~1,234 input tokens" in text
-    assert "Prompt cost" in text
+    assert "Estimated API-equivalent prompt cost" in text
 
 
 def test_format_actual_call_meter_shows_actual_usage_and_cost():
@@ -48,7 +48,7 @@ def test_format_actual_call_meter_shows_actual_usage_and_cost():
     )
 
     assert "actual input 1,000, output 500 = 1,500 tokens" in text
-    assert "Estimated cost" in text
+    assert "Estimated API-equivalent cost" in text
 
 
 def test_format_cached_call_meter_marks_no_new_spend():

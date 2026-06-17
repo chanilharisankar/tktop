@@ -271,7 +271,7 @@ OverviewScreen ── press 'h' ──▶ HistoryScreen (7-day daily aggregation
 Shown on launch. Lists all sessions with live-updating statuses for active ones. Sessions are categorized as "active" (status=busy, or status=idle updated within last hour) and "recent" (everything else). Auto-refreshes status every 2 seconds.
 
 Elements:
-- **Active sessions** at top with count label, `SessionCard` widgets showing project path, model, duration, cost, token count
+- **Active sessions** at top with count label, `SessionCard` widgets showing project path, model, duration, estimated API-equivalent cost, token count
 - **Recent/completed sessions** below
 - Card selection via cursor (↑/↓/j/k) with visual highlight
 - Press `enter` to drill into Dashboard
@@ -288,7 +288,7 @@ Full monitoring view for a single session. Multi-panel grid layout. All panels a
 │                               ││                                │
 │ Model: claude-opus-4-6        ││ Total: $1.84   Turns: 142      │
 │                               ││                                │
-│ Input      ██████████░░ 89k   ││ Cumulative cost time series    │
+│ Input      ██████████░░ 89k   ││ Cumulative API-equivalent cost │
 │ Cache Write████░░░░░░░░ 38k   ││ chart (block characters)       │
 │ Cache Read █████████░░░ 72k   ││                                │
 │ Output     ██████░░░░░░ 38k   ││ Per-turn cost breakdown table: │
@@ -322,13 +322,13 @@ Full monitoring view for a single session. Multi-panel grid layout. All panels a
 | Panel | Widget | Description |
 |---|---|---|
 | TOKEN USAGE | `TokenBars` | Model name at top, horizontal bars for input/cache-write/cache-read/output with counts and percentages. Summary line shows billable (in+out) and total tokens. |
-| COST | `CostGraph` | Total cost + turn count header. Block-character time series chart of cumulative cost over turns. Per-turn cost breakdown table (last 10 turns) with columns: #, Input, Output, CaWr, CaRd, Total. Color-coded to match token bars. |
+| COST | `CostGraph` | Estimated API-equivalent cost + turn count header. Block-character time series chart of cumulative API-equivalent cost over turns. Per-turn cost breakdown table (last 10 turns) with columns: #, Input, Output, CaWr, CaRd, Total. Color-coded to match token bars. |
 | TOKEN FLOW | `TokenGraph` (Sparkline) | Optional — enabled by `show_token_flow` config. Braille sparkline of output tokens per turn. |
 | TOOLS | `ToolTable` | Tool stats sorted by call count, with calls/turns columns and mini bar charts. |
 | ALERTS | `AlertPanel` | Active drift alerts with severity icons and descriptions. |
 | TURNS | `DataTable` | Scrollable table of recent turns (last 50 on initial load). Columns: #, Time, Role, Tokens, Tools, What. New turns append incrementally. Auto-scroll only if cursor is at bottom. Press enter to drill into turn detail. |
 
-**Subtitle:** `{project_path} — {model} — ${cost}`
+**Subtitle:** `{project_path} — {model} — Estimated API-equivalent cost: ${cost}`
 
 ### 5.4 Screen 3: Turn Detail
 
@@ -342,7 +342,7 @@ Drill-down into a single turn. Shows full token breakdown, tool calls with IDs, 
 │ Output tokens:    1,200   ││ 2. Read  (toolu_01N8yB...)    │
 │ Cache write:          0   ││                               │
 │ Cache read:       5,000   ││                               │
-│ Cost this turn:  $0.092   ││                               │
+│ Est API cost:    $0.092   ││                               │
 └───────────────────────────┘└───────────────────────────────┘
 
 ┌─ CONTENT PREVIEW ────────────────────────────────────────────┐
@@ -356,10 +356,10 @@ Drill-down into a single turn. Shows full token breakdown, tool calls with IDs, 
 
 Triggered by pressing `a` from the Dashboard. Runs async — dashboard remains usable.
 
-- **Summary line** at top showing turn count, billable tokens, cost, tool count, alert count
+- **Summary line** at top showing turn count, billable tokens, estimated API-equivalent cost, tool count, alert count
 - **Provider label** showing current LLM provider and model (e.g. `ollama/llama3`)
-- **LLM Call Cost meter** showing estimated prompt tokens before the call and
-  actual input/output tokens plus estimated cost after completion when the
+- **LLM Call API-equivalent Cost meter** showing estimated prompt tokens before the call and
+  actual input/output tokens plus estimated API-equivalent cost after completion when the
   provider returns usage metadata
 - **Analysis results** rendered as Markdown in a scrollable view
 - Press `p` to switch LLM provider mid-session (opens modal picker, re-runs analysis)
@@ -381,13 +381,13 @@ default, so it renders immediately without API keys or network calls.
   `strong_reasoning` model tiers
 - **Suggested Next Prompt** and a reusable prompt pattern
 - **Provider/model label** showing which LLM would enhance the report
-- **LLM Call Cost meter** for Enhanced Coach calls, including cached result
+- **LLM Call API-equivalent Cost meter** for Enhanced Coach calls, including cached result
   messaging when no new LLM tokens are spent
 - Press `L` to generate optional LLM-enhanced coaching with the configured provider/model
 - Press `r` to regenerate the local report and clear any cached enhanced result
 
 Enhanced Coach sends a compact prompt, not the full transcript:
-- Session summary, token/cost totals, tool counts, drift alerts
+- Session summary, token/API-equivalent cost totals, tool counts, drift alerts
 - Local Model Fit tier recommendation and escalation triggers
 - Recent user prompt snippets and recent agent activity previews
 - Local Coach findings and suggested next prompt
@@ -402,7 +402,7 @@ changes, the app closes, or the user regenerates.
 
 - **DataTable** with columns: Date, Sessions, Turns, Input, Output, Cache, Cost
 - **Total row** at bottom summing all 7 days
-- **Cost bars** panel below with horizontal bar chart showing daily cost, highest day marked with `◀`
+- **Cost bars** panel below with horizontal bar chart showing daily estimated API-equivalent cost, highest day marked with `◀`
 - Aggregates across ALL sessions for each day
 
 ### 5.8 Screen 7: Help
@@ -593,18 +593,18 @@ variants. For OpenAI models, both cache columns represent cached-input pricing;
 OpenAI does not expose a separate cache-write token category in Codex token
 usage. `gpt-5.3-codex-spark` is not priced because the Codex docs list it as a
 ChatGPT Pro research preview model without API access. Unknown models display
-tokens but show `$0.00` cost.
+tokens but show `$0.00` estimated API-equivalent cost.
 
 ### 8.2 Cost Calculation
 
 Two functions:
-- `calculate_cost(model, usage) -> float` — total cost for a TokenUsage
+- `calculate_cost(model, usage) -> float` — total API-equivalent cost for a TokenUsage
 - `calculate_cost_breakdown(model, usage) -> tuple[float, float, float, float]` — returns `(input_cost, output_cost, cache_write_cost, cache_read_cost)` for per-component breakdown
 
 ### 8.3 Cost Aggregation
 
 The aggregator computes:
-- `cost_per_turn: list[float]` — cumulative cost recalculated at each assistant turn (for the time series chart)
+- `cost_per_turn: list[float]` — cumulative API-equivalent cost recalculated at each assistant turn (for the time series chart)
 - `turn_costs: list[TurnCost]` — per-turn cost breakdown by component (for the breakdown table)
 - `total_cost: float` — final cumulative cost
 
@@ -649,7 +649,7 @@ The Ollama provider sends a detailed system prompt (`SYSTEM_PROMPT` in `prompt.p
 
 The `build_analysis_prompt(metrics)` function builds a prompt with:
 
-1. **Session Data** — agent type, model, turn count, token breakdown by category, estimated cost, cache hit ratio
+1. **Session Data** — agent type, model, turn count, token breakdown by category, estimated API-equivalent cost, cache hit ratio
 2. **Tool Usage** — each tool with call count and percentage
 3. **Detected Issues** — each alert from drift detection with severity
 4. **User Prompts** — last 5 user turns with content preview (what the developer asked)
@@ -810,9 +810,9 @@ Renders horizontal bar chart of token usage with Rich Text.
 
 ### 12.2 CostGraph (`cost_graph.py`)
 
-Renders cumulative cost time series chart and per-turn breakdown table.
+Renders cumulative estimated API-equivalent cost time series chart and per-turn breakdown table.
 
-- **Header**: total cost (bold green) and turn count
+- **Header**: estimated API-equivalent cost (bold green) and turn count
 - **Chart**: block-character bar chart (height=6, width=min(data_len, 60))
   - Uses `" ▁▂▃▄▅▆▇█"` block characters for fractional fills
   - Y-axis shows min/max cost labels
@@ -915,7 +915,7 @@ tktop/
 │           ├── protocol.py            # LLMProvider protocol
 │           ├── labels.py              # provider/model display labels
 │           ├── prompt.py              # system prompt + analysis prompt builder
-│           ├── usage.py               # LLMResult/LLMUsage + prompt/cost estimates
+│           ├── usage.py               # LLMResult/LLMUsage + prompt/API-equivalent cost estimates
 │           ├── ollama.py              # Ollama provider (chat API)
 │           ├── anthropic_provider.py  # Anthropic direct API provider
 │           ├── vertex.py              # Vertex AI provider (gcloud auth)

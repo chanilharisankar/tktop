@@ -17,7 +17,7 @@ class CostGraph(Static):
     def render(self) -> Text:
         text = Text()
 
-        text.append(" Total ", style="dim")
+        text.append(" Estimated API-equivalent cost: ", style="dim")
         text.append(f"${self.total_cost:.4f}", style="bold green")
         text.append("  Turns ", style="dim")
         text.append(str(self.turn_count), style="bold")

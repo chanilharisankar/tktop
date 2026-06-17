@@ -73,6 +73,7 @@ def test_cost_graph_render_with_data():
     graph.update_data([0.01, 0.05, 0.12, 0.20], 0.20, 4)
     text = graph.render()
     plain = text.plain
+    assert "Estimated API-equivalent cost" in plain
     assert "$0.2000" in plain
     assert "4" in plain
     assert "Waiting" not in plain

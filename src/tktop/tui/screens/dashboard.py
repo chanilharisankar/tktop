@@ -45,7 +45,7 @@ class DashboardScreen(Screen):
                     classes="panel",
                 ),
                 Vertical(
-                    Static(" COST", classes="panel-title"),
+                    Static(" ESTIMATED API-EQUIVALENT COST", classes="panel-title"),
                     CostGraph(id="cost-graph"),
                     classes="panel",
                 ),
@@ -145,7 +145,8 @@ class DashboardScreen(Screen):
         self._last_turn_count = current_count
 
         self.sub_title = (
-            f"{self.session.project_path} — {model} — ${m.total_cost:.2f}"
+            f"{self.session.project_path} — {model} — "
+            f"Estimated API-equivalent cost: ${m.total_cost:.2f}"
         )
 
     def _add_turn_row(self, table: DataTable, turn) -> None:

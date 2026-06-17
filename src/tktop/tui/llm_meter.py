@@ -11,10 +11,16 @@ def format_expected_call_meter(
     local_model: bool,
 ) -> str:
     input_text = _token_text(usage.input_tokens, approx=True)
-    cost_text = _cost_text(model, usage, local_model=local_model, prefix="Prompt cost")
+    cost_text = _cost_text(
+        model,
+        usage,
+        local_model=local_model,
+        prefix="Estimated API-equivalent prompt cost",
+    )
     return (
-        f"LLM Call Cost: expected {input_text} input tokens with {provider_label}. "
-        f"Output tokens and final cost update after completion. {cost_text}"
+        f"LLM Call API-equivalent Cost: expected {input_text} input tokens with "
+        f"{provider_label}. Output tokens and final API-equivalent cost update after "
+        f"completion. {cost_text}"
     )
 
 
@@ -27,8 +33,8 @@ def format_actual_call_meter(
 ) -> str:
     if usage is None or not usage.has_known_tokens:
         return (
-            f"LLM Call Cost: actual usage unavailable from {provider_label}. "
-            "Provider did not return token counts."
+            "LLM Call API-equivalent Cost: actual usage unavailable from "
+            f"{provider_label}. Provider did not return token counts."
         )
 
     parts = [
@@ -41,10 +47,15 @@ def format_actual_call_meter(
         parts.append(f"cache read {usage.cache_read_tokens:,}")
 
     total = usage.total_tokens or 0
-    cost_text = _cost_text(model, usage, local_model=local_model, prefix="Estimated cost")
+    cost_text = _cost_text(
+        model,
+        usage,
+        local_model=local_model,
+        prefix="Estimated API-equivalent cost",
+    )
     return (
-        f"LLM Call Cost: actual {', '.join(parts)} = {total:,} tokens with "
-        f"{provider_label}. {cost_text}"
+        f"LLM Call API-equivalent Cost: actual {', '.join(parts)} = {total:,} tokens "
+        f"with {provider_label}. {cost_text}"
     )
 
 
@@ -60,8 +71,11 @@ def format_cached_call_meter(
         model=model,
         usage=usage,
         local_model=local_model,
-    ).removeprefix("LLM Call Cost: actual ")
-    return f"LLM Call Cost: cached result - no new tokens spent. Original call: {actual}"
+    ).removeprefix("LLM Call API-equivalent Cost: actual ")
+    return (
+        "LLM Call API-equivalent Cost: cached result - no new tokens spent. "
+        f"Original call: {actual}"
+    )
 
 
 def _token_text(value: int | None, *, approx: bool = False) -> str:

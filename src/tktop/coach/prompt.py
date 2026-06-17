@@ -44,7 +44,7 @@ def build_coach_enhancement_prompt(metrics: SessionMetrics, report: CoachReport)
         f"- Output tokens: {metrics.total_usage.output_tokens:,}",
         f"- Cache created: {metrics.total_usage.cache_creation_tokens:,}",
         f"- Cache read: {metrics.total_usage.cache_read_tokens:,}",
-        f"- Estimated cost: ${metrics.total_cost:.3f}",
+        f"- Estimated API-equivalent cost: ${metrics.total_cost:.3f}",
         f"- Local coach score: {report.score}/100",
         "",
     ]

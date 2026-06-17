@@ -33,7 +33,7 @@ class TurnDetailScreen(Screen):
                         f" Output tokens:    {t.usage.output_tokens:>10,}\n"
                         f" Cache write:      {t.usage.cache_creation_tokens:>10,}\n"
                         f" Cache read:       {t.usage.cache_read_tokens:>10,}\n"
-                        f" Cost this turn:   ${cost:>9.4f}"
+                        f" Estimated API-equivalent cost this turn: ${cost:>9.4f}"
                     ),
                     classes="panel",
                 ),

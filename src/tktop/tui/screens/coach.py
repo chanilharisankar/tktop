@@ -45,7 +45,7 @@ class CoachScreen(Screen):
         summary = (
             f" {len(self.metrics.turns)} turns | "
             f"{self.metrics.total_usage.billable:,} billable tokens | "
-            f"${self.metrics.total_cost:.2f} | "
+            f"Estimated API-equivalent cost: ${self.metrics.total_cost:.2f} | "
             f"{len(self.metrics.alerts)} alerts"
         )
 

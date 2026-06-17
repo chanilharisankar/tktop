@@ -229,7 +229,7 @@ def build_coach_report(metrics: SessionMetrics) -> CoachReport:
     summary = [
         f"{len(metrics.turns)} turns",
         f"{metrics.total_usage.billable:,} billable tokens",
-        f"${metrics.total_cost:.2f} estimated cost",
+        f"${metrics.total_cost:.2f} estimated API-equivalent cost",
         f"{sum(stat.calls for stat in metrics.tool_stats.values())} tool calls",
         f"{len(metrics.alerts)} drift alerts",
     ]

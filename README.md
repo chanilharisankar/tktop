@@ -8,7 +8,7 @@ Token monitor for coding agents. Like `htop` for your AI spend.
 - **Token flow graph** — sparkline showing output tokens per turn
 - **Tool stats** — see which tools consume the most calls
 - **Drift detection** — 9 algorithms detecting loops, thrashing, runaway sessions
-- **Cost tracking** — per-session cost estimates by model
+- **Cost tracking** — per-session estimated API-equivalent cost by model
 - **Turn drill-down** — inspect individual turns with token split and content preview
 - **Coach screen** — local feedback on prompt scope, validation habits, checkpoints, and agent workflow smells
 - **LLM analysis** — on-demand optimization suggestions via Ollama/Anthropic/Vertex AI/OpenAI
@@ -73,11 +73,16 @@ suggestions are cached in memory for the running TUI session, so leaving and
 reopening Coach shows the same result until the session changes, the app closes,
 or you regenerate it.
 
-Analyze and Enhanced Coach show an **LLM Call Cost** meter for the analysis call
-itself. Before the call completes, tktop shows the estimated prompt input tokens;
-after completion, it updates with actual input/output tokens and estimated cost
-when the provider returns usage data. Cached Enhanced Coach results are marked
-as cached so it is clear no new tokens were spent.
+Analyze and Enhanced Coach show an **LLM Call API-equivalent Cost** meter for
+the analysis call itself. Before the call completes, tktop shows the estimated
+prompt input tokens; after completion, it updates with actual input/output
+tokens and estimated API-equivalent cost when the provider returns usage data.
+Cached Enhanced Coach results are marked as cached so it is clear no new tokens
+were spent.
+
+Cost values are estimated API-equivalent costs. For subscription-based tools,
+they are useful for comparing model effort and workflow efficiency, but they may
+not match your actual subscription bill.
 
 Coach's **Model Fit** section is vendor-neutral. It recommends a tier such as
 `cheap_fast`, `balanced`, or `strong_reasoning` based on prompt scope, task
@@ -85,8 +90,8 @@ complexity, validation signals, drift, and tool usage. Enhanced Coach can refine
 that advice, but it does not need an LLM to produce the local recommendation.
 
 LLM analysis remains available from a session dashboard with `a`. Analysis
-focuses on token, cost, drift, and tool optimization; Coach focuses on improving
-developer workflow with agentic coding tools.
+focuses on token, API-equivalent cost, drift, and tool optimization; Coach
+focuses on improving developer workflow with agentic coding tools.
 
 The settings file is created at `~/.tktop/settings.json` the first time `tktop`
 loads its configuration. View its path and resolved values with:

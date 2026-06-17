@@ -27,6 +27,10 @@ HELP_TEXT = """\
 
    • ▁▁▁████  Late spike  — agent went verbose recently, check why
 
+ ESTIMATED API-EQUIVALENT COST
+   Dollar values are API-equivalent estimates for comparing model effort and
+   workflow efficiency. They may not match subscription-plan billing.
+
  TOOLS
    Which tools the agent called and how often.
    High call counts for Read/Edit on the same file may indicate loops.
@@ -41,7 +45,7 @@ HELP_TEXT = """\
    • Permission loop   — 3+ permission denials
    • Error retry       — 3+ failed bash commands
    • Cache miss streak — 5+ turns with no cache reuse
-   • Cost spike        — one turn costing 2x the average
+   • Cost spike        — one turn with 2x the average API-equivalent estimate
 
  COACH
    Local guidance for improving how you use coding agents.

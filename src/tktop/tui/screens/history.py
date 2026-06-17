@@ -43,7 +43,7 @@ class HistoryScreen(Screen):
                 classes="panel",
             ),
             Vertical(
-                Static(" DAILY COST", classes="panel-title"),
+                Static(" DAILY ESTIMATED API-EQUIVALENT COST", classes="panel-title"),
                 Static("", id="cost-bars"),
                 classes="panel",
             ),
@@ -55,7 +55,7 @@ class HistoryScreen(Screen):
         table = self.query_one("#history-table", DataTable)
         table.cursor_type = "row"
         table.add_columns(
-            "Date", "Sessions", "Turns", "Input", "Output", "Cache", "Cost"
+            "Date", "Sessions", "Turns", "Input", "Output", "Cache", "Est API cost"
         )
         self.load_history()
 
@@ -148,7 +148,7 @@ def _build_cost_bars(
 
     max_cost = max(daily[d].cost for d in sorted_days)
     if max_cost == 0:
-        return " No costs recorded"
+        return " No API-equivalent costs recorded"
 
     bar_width = 30
     lines: list[str] = []
