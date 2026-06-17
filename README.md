@@ -10,6 +10,7 @@ Token monitor for coding agents. Like `htop` for your AI spend.
 - **Drift detection** — 9 algorithms detecting loops, thrashing, runaway sessions
 - **Cost tracking** — per-session cost estimates by model
 - **Turn drill-down** — inspect individual turns with token split and content preview
+- **Coach screen** — local feedback on prompt scope, validation habits, checkpoints, and agent workflow smells
 - **LLM analysis** — on-demand optimization suggestions via Ollama/Anthropic/Vertex AI/OpenAI
 
 ## Install
@@ -45,6 +46,8 @@ LLM APIs.
 | `↑/↓` or `j/k` | Navigate |
 | `enter` | Select / drill-down |
 | `a` | Run LLM analysis |
+| `c` | Open Coach for the current session |
+| `L` | Enhance Coach suggestions with the configured LLM |
 | `r` | Refresh |
 | `escape` | Back |
 | `q` | Quit |
@@ -56,7 +59,22 @@ LLM APIs.
 - [ ] Cursor (planned)
 - [ ] Aider (planned)
 
-## LLM Analysis
+## Coach And LLM Analysis
+
+The Coach screen is available from a session dashboard with `c`. It renders a
+scrollable Markdown report with local, deterministic guidance about how the
+developer used the coding agent: prompt scope, validation requests, checkpoint
+habits, exploration before edits, and repeated tool usage.
+
+Coach does not call an LLM by default. Press `L` inside Coach to enhance the
+local findings with the configured analysis provider and model. Enhanced
+suggestions are cached in memory for the running TUI session, so leaving and
+reopening Coach shows the same result until the session changes, the app closes,
+or you regenerate it.
+
+LLM analysis remains available from a session dashboard with `a`. Analysis
+focuses on token, cost, drift, and tool optimization; Coach focuses on improving
+developer workflow with agentic coding tools.
 
 The settings file is created at `~/.tktop/settings.json` the first time `tktop`
 loads its configuration. View its path and resolved values with:

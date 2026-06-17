@@ -2,7 +2,7 @@
 
 **Tool:** tktop — interactive CLI token monitor for coding agents
 **Audience:** Personal use first, open-source later
-**Date:** 2026-06-08 (last updated: 2026-06-16)
+**Date:** 2026-06-08 (last updated: 2026-06-17)
 
 ---
 
@@ -156,9 +156,16 @@ tktop (single process)
 │   ├── DashboardScreen       — btop-style multi-panel monitoring
 │   ├── TurnDetailScreen      — single turn drill-down
 │   ├── AnalysisScreen        — LLM optimization results
+│   ├── CoachScreen           — local usage coaching + optional LLM enhancement
 │   ├── HistoryScreen         — 7-day daily usage breakdown
 │   ├── HelpScreen            — keybindings and panel documentation
 │   └── ProviderPickerScreen  — modal LLM provider selector
+│
+├── Coach Layer
+│   ├── Rule engine           — prompt/workflow/validation/checkpoint signals
+│   ├── Markdown renderer     — scrollable local report
+│   ├── Enhancement prompt    — compact summary for optional LLM coaching
+│   └── In-memory cache       — local + enhanced results per session fingerprint
 │
 ├── Adapter Layer
 │   ├── SessionAdapter        — protocol (interface) for all adapters
@@ -212,14 +219,16 @@ tktop (single process)
                         ┌───────────┼───────────┐
                         │           │           │
                         ▼           ▼           ▼
-                   enter on     press 'a'   press 'h'
-                   turn row         │       (from overview)
+                   enter on     press 'a'   press 'c'
+                   turn row         │           │
                         │           │           │
                         ▼           ▼           ▼
-                   TurnDetail  AnalysisScreen  HistoryScreen
-                               (async LLM,     (7-day daily
-                                provider        aggregation)
+                   TurnDetail  AnalysisScreen  CoachScreen
+                               (async LLM,     (local rules,
+                                provider        optional LLM)
                                 picker)
+
+OverviewScreen ── press 'h' ──▶ HistoryScreen (7-day daily aggregation)
 ```
 
 ### 4.3 Key Design Decisions
@@ -247,6 +256,8 @@ tktop (single process)
 | `escape` | Go back one level | Dashboard → Overview, Detail → Dashboard, etc. |
 | `enter` | Drill in | Overview → Dashboard, Turn row → Turn Detail |
 | `a` | Run LLM analysis | Dashboard only |
+| `c` | Open Coach | Dashboard only |
+| `L` | Enhance Coach suggestions with LLM | Coach only |
 | `r` | Refresh data | Overview + Dashboard + History |
 | `h` | Open history | Overview only |
 | `p` | Pick LLM provider | Analysis only |
@@ -349,7 +360,33 @@ Triggered by pressing `a` from the Dashboard. Runs async — dashboard remains u
 - Press `p` to switch LLM provider mid-session (opens modal picker, re-runs analysis)
 - Error handling for unreachable providers and failed analysis calls
 
-### 5.6 Screen 5: History
+### 5.6 Screen 5: Coach
+
+Triggered by pressing `c` from the Dashboard. Coach is local and rule-based by
+default, so it renders immediately without API keys or network calls.
+
+- **Scrollable Markdown report** with local coaching findings
+- **Session Usage Score** derived from prompt, validation, workflow, checkpoint,
+  and efficiency signals
+- **Prompt Habits** for broad prompts, missing file scope, and missing acceptance criteria
+- **Validation Habits** for test/lint/verify language
+- **Workflow Habits** for exploration before edits and dominant repeated tools
+- **Checkpoint Habits** for long sessions without summary/status checkpoints
+- **Suggested Next Prompt** and a reusable prompt pattern
+- **Provider/model label** showing which LLM would enhance the report
+- Press `L` to generate optional LLM-enhanced coaching with the configured provider/model
+- Press `r` to regenerate the local report and clear any cached enhanced result
+
+Enhanced Coach sends a compact prompt, not the full transcript:
+- Session summary, token/cost totals, tool counts, drift alerts
+- Recent user prompt snippets and recent agent activity previews
+- Local Coach findings and suggested next prompt
+
+Coach results are cached in memory on `TktopApp` by session fingerprint. Reopening
+Coach for the same session reuses local and enhanced Markdown until the session
+changes, the app closes, or the user regenerates.
+
+### 5.7 Screen 6: History
 
 7-day daily usage breakdown. Accessed from Overview by pressing `h`.
 
@@ -358,7 +395,7 @@ Triggered by pressing `a` from the Dashboard. Runs async — dashboard remains u
 - **Cost bars** panel below with horizontal bar chart showing daily cost, highest day marked with `◀`
 - Aggregates across ALL sessions for each day
 
-### 5.7 Screen 6: Help
+### 5.8 Screen 7: Help
 
 Full documentation of all panels, keybindings, and configuration. Shows:
 - Panel descriptions with interpretation guides for Token Flow sparkline patterns
@@ -366,7 +403,7 @@ Full documentation of all panels, keybindings, and configuration. Shows:
 - Keybinding reference per screen
 - Configuration info (settings file location, CLI commands, load order)
 
-### 5.8 Screen 7: Provider Picker (Modal)
+### 5.9 Screen 8: Provider Picker (Modal)
 
 Modal overlay for switching LLM provider during analysis:
 - Lists all 4 providers with their configured model
@@ -809,6 +846,12 @@ tktop/
 │       ├── __init__.py                # version string
 │       ├── cli.py                     # typer entry point + config subcommands
 │       ├── config.py                  # layered config: settings.json + env vars + auto-detect
+│       ├── coach/
+│       │   ├── __init__.py
+│       │   ├── cache.py               # in-memory Coach cache helpers and fingerprints
+│       │   ├── prompt.py              # compact LLM enhancement prompt builder
+│       │   ├── rules.py               # local deterministic coaching rules + Markdown renderer
+│       │   └── types.py               # CoachReport, CoachFinding, CoachCacheEntry
 │       ├── adapter/
 │       │   ├── __init__.py
 │       │   ├── protocol.py            # SessionAdapter protocol
@@ -829,6 +872,7 @@ tktop/
 │       │   │   ├── dashboard.py       # btop-style multi-panel monitoring
 │       │   │   ├── turn_detail.py     # single turn drill-down
 │       │   │   ├── analysis.py        # LLM analysis with provider switching
+│       │   │   ├── coach.py           # local Coach + optional cached LLM enhancement
 │       │   │   ├── history.py         # 7-day daily usage breakdown
 │       │   │   ├── help.py            # keybindings + panel documentation
 │       │   │   └── provider_picker.py # modal LLM provider selector
@@ -843,6 +887,7 @@ tktop/
 │       └── llm/
 │           ├── __init__.py
 │           ├── protocol.py            # LLMProvider protocol
+│           ├── labels.py              # provider/model display labels
 │           ├── prompt.py              # system prompt + analysis prompt builder
 │           ├── ollama.py              # Ollama provider (chat API)
 │           ├── anthropic_provider.py  # Anthropic direct API provider
@@ -923,21 +968,27 @@ Runs three checks in order, blocking commit on failure:
 
 ## 16. Test Coverage
 
-94 tests across 16 test files. All tests run in <0.3s.
+142 tests across 21 test files. All tests run in about 1 second locally.
 
 | Test File | Tests | Coverage |
 |---|---|---|
 | `test_types.py` | 5 | TokenUsage.total, .billable, TurnCost.total |
 | `test_pricing.py` | 7 | Opus/Sonnet cost calc, unknown model, model table, cost breakdown, sum consistency |
 | `test_adapter_claude.py` | 5 | Session discovery, transcript parsing, content preview, empty dir, missing transcript |
+| `test_adapter_codex.py` | 4 | Codex session discovery, transcript parsing, missing transcript, explicit factory selection |
 | `test_aggregator.py` | 9 | Token totals, tool stats, tokens_per_turn, cost_per_turn (cumulative, skips user, empty), turn_costs (breakdown, skips user, empty) |
+| `test_cli.py` | 8 | Help/version aliases, info, doctor, config path |
+| `test_coach.py` | 11 | Coach rules, Markdown rendering, cache behavior, enhancement prompt, keybinding/help exposure |
 | `test_drift.py` | 12 | All 9 detectors + edge cases (broken by user turn, not triggered, etc.) |
-| `test_config.py` | 11 | Defaults, env overrides, vertex auto-detect, show_token_flow, config resolution |
+| `test_config.py` | 12 | Defaults, env overrides, vertex auto-detect, show_token_flow, config resolution |
 | `test_config_settings.py` | 7 | Settings file creation, loading, permissions, defaults, apply |
+| `test_diagnostics.py` | 15 | Doctor/info diagnostics, adapter/provider statuses, setup edge cases |
 | `test_llm_ollama.py` | 3 | Analyze (mocked), error handling, health check |
 | `test_llm_factory.py` | 5 | Factory for all 4 providers + unknown |
 | `test_prompt.py` | 6 | Prompt building, section presence, system prompt content, user prompts |
 | `test_history.py` | 2 | Daily aggregation, empty sessions |
+| `test_integration_codex.py` | 1 | End-to-end Codex adapter integration |
+| `test_release.py` | 8 | Release version validation and pyproject version update helper |
 | `test_session_title.py` | 3 | Title extraction from ai-title entries |
 | `test_token_bars.py` | 6 | Model display, no model default, model persistence, _fmt helper |
 | `test_cost_graph.py` | 12 | _sample, update_data, rendering (waiting, chart, breakdown), truncation, _cost formatter |
