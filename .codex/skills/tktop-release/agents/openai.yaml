@@ -1,0 +1,4 @@
+interface:
+  display_name: "tktop Release"
+  short_description: "Prepare and verify tktop releases"
+  default_prompt: "Use $tktop-release to inspect the current tktop version and prepare a release."
