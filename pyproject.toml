@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tktop"
-version = "1.1.0"
+version = "1.1.1"
 description = "Token monitor for coding agents — like htop for AI spend"
 readme = "README.md"
 requires-python = ">=3.10"
