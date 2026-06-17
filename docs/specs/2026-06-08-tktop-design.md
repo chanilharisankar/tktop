@@ -163,6 +163,7 @@ tktop (single process)
 │
 ├── Coach Layer
 │   ├── Rule engine           — prompt/workflow/validation/checkpoint signals
+│   ├── Model advisor         — vendor-neutral model tier guidance
 │   ├── Markdown renderer     — scrollable local report
 │   ├── Enhancement prompt    — compact summary for optional LLM coaching
 │   └── In-memory cache       — local + enhanced results per session fingerprint
@@ -372,6 +373,8 @@ default, so it renders immediately without API keys or network calls.
 - **Validation Habits** for test/lint/verify language
 - **Workflow Habits** for exploration before edits and dominant repeated tools
 - **Checkpoint Habits** for long sessions without summary/status checkpoints
+- **Model Fit** recommendation for `cheap_fast`, `balanced`, or
+  `strong_reasoning` model tiers
 - **Suggested Next Prompt** and a reusable prompt pattern
 - **Provider/model label** showing which LLM would enhance the report
 - Press `L` to generate optional LLM-enhanced coaching with the configured provider/model
@@ -379,6 +382,7 @@ default, so it renders immediately without API keys or network calls.
 
 Enhanced Coach sends a compact prompt, not the full transcript:
 - Session summary, token/cost totals, tool counts, drift alerts
+- Local Model Fit tier recommendation and escalation triggers
 - Recent user prompt snippets and recent agent activity previews
 - Local Coach findings and suggested next prompt
 
@@ -855,9 +859,10 @@ tktop/
 │       ├── coach/
 │       │   ├── __init__.py
 │       │   ├── cache.py               # in-memory Coach cache helpers and fingerprints
+│       │   ├── model_advisor.py       # deterministic model tier recommendation rules
 │       │   ├── prompt.py              # compact LLM enhancement prompt builder
 │       │   ├── rules.py               # local deterministic coaching rules + Markdown renderer
-│       │   └── types.py               # CoachReport, CoachFinding, CoachCacheEntry
+│       │   └── types.py               # CoachReport, findings, model recommendation, cache entry
 │       ├── adapter/
 │       │   ├── __init__.py
 │       │   ├── protocol.py            # SessionAdapter protocol
@@ -974,7 +979,7 @@ Runs three checks in order, blocking commit on failure:
 
 ## 16. Test Coverage
 
-147 tests across 21 test files. All tests run in about 1 second locally.
+151 tests across 21 test files. All tests run in about 1 second locally.
 
 | Test File | Tests | Coverage |
 |---|---|---|
@@ -984,7 +989,7 @@ Runs three checks in order, blocking commit on failure:
 | `test_adapter_codex.py` | 4 | Codex session discovery, transcript parsing, missing transcript, explicit factory selection |
 | `test_aggregator.py` | 10 | Token totals, tool stats, tokens_per_turn, cost_per_turn (cumulative, skips user, empty), Claude model pricing, turn_costs (breakdown, skips user, empty) |
 | `test_cli.py` | 8 | Help/version aliases, info, doctor, config path |
-| `test_coach.py` | 11 | Coach rules, Markdown rendering, cache behavior, enhancement prompt, keybinding/help exposure |
+| `test_coach.py` | 15 | Coach rules, model tier guidance, Markdown rendering, cache behavior, enhancement prompt, keybinding/help exposure |
 | `test_drift.py` | 12 | All 9 detectors + edge cases (broken by user turn, not triggered, etc.) |
 | `test_config.py` | 12 | Defaults, env overrides, vertex auto-detect, show_token_flow, config resolution |
 | `test_config_settings.py` | 7 | Settings file creation, loading, permissions, defaults, apply |

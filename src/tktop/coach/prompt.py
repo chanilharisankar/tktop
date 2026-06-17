@@ -29,9 +29,11 @@ def build_coach_enhancement_prompt(metrics: SessionMetrics, report: CoachReport)
         "1. Top 3 Habits To Improve",
         "2. Better Prompt Rewrite",
         "3. Suggested Next Prompt",
-        "4. Why This Session Took The Shape It Did",
+        "4. Model Tier Guidance",
+        "5. Why This Session Took The Shape It Did",
         "",
-        "Keep advice concrete and specific to the session. Do not invent file contents.",
+        "Keep advice concrete and specific to the session. Do not invent file contents "
+        "or vendor-specific model names.",
         "",
         "## Session Summary",
         f"- Agent: {metrics.session.agent_type}",
@@ -45,8 +47,33 @@ def build_coach_enhancement_prompt(metrics: SessionMetrics, report: CoachReport)
         f"- Estimated cost: ${metrics.total_cost:.3f}",
         f"- Local coach score: {report.score}/100",
         "",
-        "## Tool Usage",
     ]
+
+    if report.model_recommendation is not None:
+        recommendation = report.model_recommendation
+        lines.extend(
+            [
+                "## Local Model Fit Recommendation",
+                f"- Recommended tier: {recommendation.tier}",
+                f"- Confidence: {recommendation.confidence}",
+                f"- Detail: {recommendation.detail}",
+                f"- Next step: {recommendation.next_step}",
+                "- Reasons:",
+                *[f"  - {reason}" for reason in recommendation.reasons],
+            ]
+        )
+        if recommendation.escalation_triggers:
+            lines.extend(
+                [
+                    "- Escalation triggers:",
+                    *[
+                        f"  - {trigger}"
+                        for trigger in recommendation.escalation_triggers
+                    ],
+                ]
+            )
+
+    lines.extend(["", "## Tool Usage"])
 
     total_calls = sum(stat.calls for stat in metrics.tool_stats.values())
     if total_calls == 0:

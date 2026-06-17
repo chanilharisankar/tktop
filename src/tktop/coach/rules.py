@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from tktop.coach.model_advisor import recommend_model_tier
 from tktop.coach.types import CoachFinding, CoachReport
 from tktop.metrics.types import SessionMetrics, Turn
 
@@ -62,6 +63,7 @@ def build_coach_report(metrics: SessionMetrics) -> CoachReport:
                 "and stop condition."
             ),
             prompt_pattern=_prompt_pattern(),
+            model_recommendation=None,
         )
 
     first_prompt = user_turns[0].content_preview if user_turns else ""
@@ -243,6 +245,7 @@ def build_coach_report(metrics: SessionMetrics) -> CoachReport:
             needs_checkpoint=_needs_checkpoint(metrics),
         ),
         prompt_pattern=_prompt_pattern(),
+        model_recommendation=recommend_model_tier(metrics),
     )
 
 
@@ -256,6 +259,37 @@ def render_coach_markdown(report: CoachReport) -> str:
         *[f"- {item}" for item in report.summary],
         "",
     ]
+
+    if report.model_recommendation is not None:
+        recommendation = report.model_recommendation
+        lines.extend(
+            [
+                "## Model Fit",
+                "",
+                f"**Recommended tier:** `{recommendation.tier}`",
+                f"**Confidence:** {recommendation.confidence}",
+                "",
+                recommendation.detail,
+                "",
+                "**Why:**",
+                *[f"- {reason}" for reason in recommendation.reasons],
+                "",
+                "**Next time:**",
+                recommendation.next_step,
+            ]
+        )
+        if recommendation.escalation_triggers:
+            lines.extend(
+                [
+                    "",
+                    "**Escalate when:**",
+                    *[
+                        f"- {trigger}"
+                        for trigger in recommendation.escalation_triggers
+                    ],
+                ]
+            )
+        lines.append("")
 
     for category in _categories(report.findings):
         lines.extend([f"## {category}", ""])

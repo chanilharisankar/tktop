@@ -64,13 +64,19 @@ LLM APIs.
 The Coach screen is available from a session dashboard with `c`. It renders a
 scrollable Markdown report with local, deterministic guidance about how the
 developer used the coding agent: prompt scope, validation requests, checkpoint
-habits, exploration before edits, and repeated tool usage.
+habits, exploration before edits, repeated tool usage, and which model tier
+would fit similar prompts next time.
 
 Coach does not call an LLM by default. Press `L` inside Coach to enhance the
 local findings with the configured analysis provider and model. Enhanced
 suggestions are cached in memory for the running TUI session, so leaving and
 reopening Coach shows the same result until the session changes, the app closes,
 or you regenerate it.
+
+Coach's **Model Fit** section is vendor-neutral. It recommends a tier such as
+`cheap_fast`, `balanced`, or `strong_reasoning` based on prompt scope, task
+complexity, validation signals, drift, and tool usage. Enhanced Coach can refine
+that advice, but it does not need an LLM to produce the local recommendation.
 
 LLM analysis remains available from a session dashboard with `a`. Analysis
 focuses on token, cost, drift, and tool optimization; Coach focuses on improving

@@ -65,11 +65,24 @@ def _turn(
     )
 
 
-def _metrics(turns: list[Turn], tool_stats: dict[str, ToolStat] | None = None) -> SessionMetrics:
+def _metrics(
+    turns: list[Turn],
+    tool_stats: dict[str, ToolStat] | None = None,
+    alerts: list[Alert] | None = None,
+) -> SessionMetrics:
     total_usage = TokenUsage()
     for turn in turns:
         total_usage.input_tokens += turn.usage.input_tokens
         total_usage.output_tokens += turn.usage.output_tokens
+
+    default_alerts = [
+        Alert(
+            severity="warning",
+            type="tool_loop",
+            description="Read dominated exploration",
+            detected_at=datetime(2026, 6, 17, 10, 0, tzinfo=UTC),
+        )
+    ]
 
     return SessionMetrics(
         session=_session(),
@@ -77,14 +90,7 @@ def _metrics(turns: list[Turn], tool_stats: dict[str, ToolStat] | None = None) -
         total_usage=total_usage,
         total_cost=0.25,
         tool_stats=tool_stats or {},
-        alerts=[
-            Alert(
-                severity="warning",
-                type="tool_loop",
-                description="Read dominated exploration",
-                detected_at=datetime(2026, 6, 17, 10, 0, tzinfo=UTC),
-            )
-        ],
+        alerts=default_alerts if alerts is None else alerts,
     )
 
 
@@ -139,6 +145,93 @@ def test_coach_recognizes_scoped_validated_prompt():
     assert report.score >= 90
 
 
+def test_coach_model_fit_recommends_cheap_fast_for_simple_docs():
+    turns = [
+        _turn(
+            1,
+            "user",
+            "Fix typo in README.md and run markdown lint.",
+        ),
+        _turn(2, "assistant", "Updated README", output_tokens=120, tools=["Read", "Edit"]),
+    ]
+
+    report = build_coach_report(_metrics(turns, alerts=[]))
+
+    assert report.model_recommendation is not None
+    assert report.model_recommendation.tier == "cheap_fast"
+    assert "cheapest fast coding model" in report.model_recommendation.next_step
+
+
+def test_coach_model_fit_recommends_balanced_for_focused_bug_fix():
+    turns = [
+        _turn(
+            1,
+            "user",
+            "Fix failing login test in src/auth/session.py and run pytest tests/test_auth.py.",
+        ),
+        _turn(
+            2,
+            "assistant",
+            "Read auth code and fixed the test failure",
+            output_tokens=800,
+            tools=["Read", "Edit", "Bash"],
+        ),
+    ]
+
+    report = build_coach_report(_metrics(turns, alerts=[]))
+
+    assert report.model_recommendation is not None
+    assert report.model_recommendation.tier == "balanced"
+    assert "balanced coding model" in report.model_recommendation.next_step
+
+
+def test_coach_model_fit_recommends_strong_for_architecture_work():
+    turns = [
+        _turn(
+            1,
+            "user",
+            "Design a plugin architecture and migration plan for the adapter layer.",
+        ),
+        _turn(2, "assistant", "Planning architecture", output_tokens=2_000, tools=["Read"]),
+    ]
+
+    report = build_coach_report(_metrics(turns, alerts=[]))
+
+    assert report.model_recommendation is not None
+    assert report.model_recommendation.tier == "strong_reasoning"
+    assert "strongest reasoning model" in report.model_recommendation.next_step
+
+
+def test_coach_model_fit_escalates_drift_heavy_sessions():
+    turns = [_turn(1, "user", "fix auth")]
+    for index in range(2, 18):
+        turns.append(
+            _turn(index, "assistant", "Exploring auth", output_tokens=500, tools=["Read"])
+        )
+    alerts = [
+        Alert(
+            severity="warning",
+            type="tool_loop",
+            description="Read dominated exploration",
+            detected_at=datetime(2026, 6, 17, 10, 0, tzinfo=UTC),
+        ),
+        Alert(
+            severity="warning",
+            type="read_loop",
+            description="Repeated file reads",
+            detected_at=datetime(2026, 6, 17, 10, 1, tzinfo=UTC),
+        ),
+    ]
+
+    report = build_coach_report(
+        _metrics(turns, {"Read": ToolStat(name="Read", calls=20, turns_present=16)}, alerts)
+    )
+
+    assert report.model_recommendation is not None
+    assert report.model_recommendation.tier == "strong_reasoning"
+    assert any("drift alerts" in reason for reason in report.model_recommendation.reasons)
+
+
 def test_coach_does_not_count_negative_test_phrase_as_validation():
     turns = [
         _turn(1, "user", "fix auth"),
@@ -173,6 +266,8 @@ def test_coach_markdown_renders_findings_and_prompt_pattern():
     markdown = render_coach_markdown(report)
 
     assert "# Coach" in markdown
+    assert "## Model Fit" in markdown
+    assert "Recommended tier" in markdown
     assert "## Prompt Habits" in markdown
     assert "## Suggested Next Prompt" in markdown
     assert "Goal: <specific change or question>" in markdown
@@ -189,6 +284,8 @@ def test_coach_enhancement_prompt_is_compact_and_contextual():
     prompt = build_coach_enhancement_prompt(metrics, report)
 
     assert "Top 3 Habits To Improve" in prompt
+    assert "Model Tier Guidance" in prompt
+    assert "Local Model Fit Recommendation" in prompt
     assert "Local Coach Findings" in prompt
     assert "Turn 1: fix auth" in prompt
     assert "Read: 1 calls" in prompt
