@@ -36,9 +36,36 @@ def test_cost_graph_update_data_with_turn_costs():
 
 def test_cost_graph_render_waiting_message():
     graph = CostGraph()
-    graph.update_data([0.01], 0.01, 1)
+    graph.update_data([], 0.0, 0)
     text = graph.render()
     assert "Waiting for data" in text.plain
+
+
+def test_cost_graph_render_one_turn_shows_breakdown_table():
+    turn_costs = [
+        TurnCost(
+            1,
+            input_cost=0.003,
+            output_cost=0.015,
+            cache_write_cost=0.001,
+            cache_read_cost=0.0002,
+        ),
+    ]
+    graph = CostGraph()
+    graph.update_data([0.0192], 0.0192, 1, turn_costs)
+    plain = graph.render().plain
+    assert "Trend starts after 2 assistant turns" in plain
+    assert "Input" in plain
+    assert "$0.0030" in plain
+
+
+def test_cost_graph_render_unknown_pricing_message():
+    turn_costs = [TurnCost(1), TurnCost(2)]
+    graph = CostGraph()
+    graph.update_data([0.0, 0.0], 0.0, 2, turn_costs)
+    plain = graph.render().plain
+    assert "No priced cost data for this model" in plain
+    assert "Input" in plain
 
 
 def test_cost_graph_render_with_data():

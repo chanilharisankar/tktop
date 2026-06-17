@@ -214,6 +214,24 @@ def test_aggregate_turn_costs_breakdown():
     assert abs(tc.total - (3.0 + 1.5 + 0.1875 + 0.06)) < 0.01
 
 
+def test_aggregate_prices_dated_claude_model_id():
+    turns = [
+        Turn(
+            number=1,
+            timestamp=datetime.now(tz=UTC),
+            role="assistant",
+            model="claude-sonnet-4-20250514",
+            usage=TokenUsage(input_tokens=1_000_000, output_tokens=100_000),
+        ),
+    ]
+
+    result = aggregate(_make_session(), turns)
+
+    assert abs(result.total_cost - 4.5) < 0.01
+    assert len(result.turn_costs) == 1
+    assert abs(result.turn_costs[0].total - 4.5) < 0.01
+
+
 def test_aggregate_turn_costs_skips_user_turns():
     turns = [
         Turn(

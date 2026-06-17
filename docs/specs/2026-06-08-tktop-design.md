@@ -562,14 +562,20 @@ Nine detection algorithms. Each runs independently over the turn list and return
 
 | Model | Input (per 1M) | Output (per 1M) | Cache Write (per 1M) | Cache Read (per 1M) |
 |---|---|---|---|---|
-| claude-opus-4-6 | $15.00 | $75.00 | $18.75 | $1.50 |
-| claude-opus-4-8 | $15.00 | $75.00 | $18.75 | $1.50 |
+| claude-fable-5 / claude-mythos-5 | $10.00 | $50.00 | $12.50 | $1.00 |
+| claude-opus-4-5/4-6/4-7/4-8 | $5.00 | $25.00 | $6.25 | $0.50 |
+| claude-opus-4 / claude-opus-4-1 | $15.00 | $75.00 | $18.75 | $1.50 |
 | claude-sonnet-4-6 | $3.00 | $15.00 | $3.75 | $0.30 |
-| claude-haiku-4-5 | $0.80 | $4.00 | $1.00 | $0.08 |
+| claude-sonnet-4 / claude-sonnet-4-5 | $3.00 | $15.00 | $3.75 | $0.30 |
+| claude-haiku-4-5 | $1.00 | $5.00 | $1.25 | $0.10 |
+| claude-3-5-haiku | $0.80 | $4.00 | $1.00 | $0.08 |
 | gpt-4o | $2.50 | $10.00 | — | — |
 | gpt-4.1 | $2.00 | $8.00 | $0.50 | $0.50 |
 
-Unknown models display tokens but show `$0.00` cost.
+Claude model pricing accepts Claude API, Bedrock, and Vertex ID variants,
+including dated snapshot IDs where a base model price is known. Cache Write is
+the 5-minute prompt cache write rate. Unknown models display tokens but show
+`$0.00` cost.
 
 ### 8.2 Cost Calculation
 
@@ -968,15 +974,15 @@ Runs three checks in order, blocking commit on failure:
 
 ## 16. Test Coverage
 
-142 tests across 21 test files. All tests run in about 1 second locally.
+147 tests across 21 test files. All tests run in about 1 second locally.
 
 | Test File | Tests | Coverage |
 |---|---|---|
 | `test_types.py` | 5 | TokenUsage.total, .billable, TurnCost.total |
-| `test_pricing.py` | 7 | Opus/Sonnet cost calc, unknown model, model table, cost breakdown, sum consistency |
+| `test_pricing.py` | 9 | Opus/Sonnet cost calc, current Claude IDs, provider ID normalization, unknown model, model table, cost breakdown, sum consistency |
 | `test_adapter_claude.py` | 5 | Session discovery, transcript parsing, content preview, empty dir, missing transcript |
 | `test_adapter_codex.py` | 4 | Codex session discovery, transcript parsing, missing transcript, explicit factory selection |
-| `test_aggregator.py` | 9 | Token totals, tool stats, tokens_per_turn, cost_per_turn (cumulative, skips user, empty), turn_costs (breakdown, skips user, empty) |
+| `test_aggregator.py` | 10 | Token totals, tool stats, tokens_per_turn, cost_per_turn (cumulative, skips user, empty), Claude model pricing, turn_costs (breakdown, skips user, empty) |
 | `test_cli.py` | 8 | Help/version aliases, info, doctor, config path |
 | `test_coach.py` | 11 | Coach rules, Markdown rendering, cache behavior, enhancement prompt, keybinding/help exposure |
 | `test_drift.py` | 12 | All 9 detectors + edge cases (broken by user turn, not triggered, etc.) |
@@ -991,7 +997,7 @@ Runs three checks in order, blocking commit on failure:
 | `test_release.py` | 8 | Release version validation and pyproject version update helper |
 | `test_session_title.py` | 3 | Title extraction from ai-title entries |
 | `test_token_bars.py` | 6 | Model display, no model default, model persistence, _fmt helper |
-| `test_cost_graph.py` | 12 | _sample, update_data, rendering (waiting, chart, breakdown), truncation, _cost formatter |
+| `test_cost_graph.py` | 14 | _sample, update_data, rendering (waiting, chart, short sessions, unknown pricing, breakdown), truncation, _cost formatter |
 | `test_integration.py` | 1 | End-to-end adapter→aggregator→drift pipeline |
 
 ---

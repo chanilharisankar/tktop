@@ -23,8 +23,21 @@ class CostGraph(Static):
         text.append(str(self.turn_count), style="bold")
         text.append("\n\n")
 
-        if len(self.data) < 2:
+        if not self.data:
             text.append(" Waiting for data...", style="dim")
+            return text
+
+        if self.turn_costs and not any(tc.total > 0 for tc in self.turn_costs):
+            text.append(" No priced cost data for this model.", style="yellow")
+            text.append("\n\n")
+            _render_breakdown_table(text, self.turn_costs)
+            return text
+
+        if len(self.data) < 2:
+            text.append(" Trend starts after 2 assistant turns.", style="dim")
+            if self.turn_costs:
+                text.append("\n\n")
+                _render_breakdown_table(text, self.turn_costs)
             return text
 
         height = 6

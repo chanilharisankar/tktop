@@ -10,11 +10,11 @@ def test_calculate_cost_opus():
         cache_read_tokens=3000,
     )
     cost = calculate_cost("claude-opus-4-6", usage)
-    # Input: 1000 * 15.00/1M = 0.015
-    # Output: 500 * 75.00/1M = 0.0375
-    # CacheWrite: 2000 * 18.75/1M = 0.0375
-    # CacheRead: 3000 * 1.50/1M = 0.0045
-    expected = 0.0945
+    # Input: 1000 * 5.00/1M = 0.005
+    # Output: 500 * 25.00/1M = 0.0125
+    # CacheWrite: 2000 * 6.25/1M = 0.0125
+    # CacheRead: 3000 * 0.50/1M = 0.0015
+    expected = 0.0315
     assert abs(cost - expected) < 0.0001
 
 
@@ -27,6 +27,35 @@ def test_calculate_cost_sonnet():
     assert abs(cost - expected) < 0.01
 
 
+def test_calculate_cost_current_opus():
+    usage = TokenUsage(
+        input_tokens=1_000_000,
+        output_tokens=100_000,
+        cache_creation_tokens=100_000,
+        cache_read_tokens=100_000,
+    )
+    cost = calculate_cost("claude-opus-4-8", usage)
+    expected = 5.0 + 2.5 + 0.625 + 0.05
+    assert abs(cost - expected) < 0.001
+
+
+def test_calculate_cost_claude_dated_and_provider_ids():
+    usage = TokenUsage(
+        input_tokens=1_000_000,
+        output_tokens=100_000,
+        cache_creation_tokens=100_000,
+        cache_read_tokens=100_000,
+    )
+
+    sonnet = calculate_cost("claude-sonnet-4-5-20250929", usage)
+    bedrock_haiku = calculate_cost("anthropic.claude-haiku-4-5-20251001-v1:0", usage)
+    vertex_haiku = calculate_cost("claude-haiku-4-5@20251001", usage)
+
+    assert abs(sonnet - (3.0 + 1.5 + 0.375 + 0.03)) < 0.001
+    assert abs(bedrock_haiku - (1.0 + 0.5 + 0.125 + 0.01)) < 0.001
+    assert abs(vertex_haiku - bedrock_haiku) < 0.000001
+
+
 def test_calculate_cost_unknown_model():
     usage = TokenUsage(input_tokens=1000, output_tokens=500)
     cost = calculate_cost("unknown-model-xyz", usage)
@@ -34,8 +63,11 @@ def test_calculate_cost_unknown_model():
 
 
 def test_pricing_table_has_expected_models():
+    assert "claude-fable-5" in MODEL_PRICING
+    assert "claude-opus-4-8" in MODEL_PRICING
     assert "claude-opus-4-6" in MODEL_PRICING
     assert "claude-sonnet-4-6" in MODEL_PRICING
+    assert "claude-sonnet-4-5" in MODEL_PRICING
     assert "claude-haiku-4-5" in MODEL_PRICING
     assert "gpt-4o" in MODEL_PRICING
 
